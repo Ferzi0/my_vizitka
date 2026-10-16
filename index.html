@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <title>Ярослав Север — сайты и веб-сервисы для бизнеса</title>
+  <meta name="description" content="Разработчик сайтов и веб-сервисов: лендинги, интернет-магазины, личные кабинеты и админки. Фиксированная смета, прямой контакт, код и доступы остаются у вас.">
+  <link rel="canonical" href="https://example.com/">
+  <meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1117" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:site_name" content="Ярослав Север">
+  <meta property="og:title" content="Ярослав Север — сайты и веб-сервисы для бизнеса">
+  <meta property="og:description" content="Лендинги, магазины, личные кабинеты. Фиксированная смета, прямой контакт, код остаётся у вас.">
+  <meta property="og:url" content="https://example.com/">
+  <meta property="og:image" content="https://example.com/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Ярослав Север — разработчик сайтов и веб-сервисов">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Ярослав Север — сайты и веб-сервисы для бизнеса">
+  <meta name="twitter:description" content="Лендинги, магазины, личные кабинеты. Фиксированная смета, прямой контакт, код остаётся у вас.">
+  <meta name="twitter:image" content="https://example.com/assets/og-image.png">
+
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+  <link rel="preload" href="assets/fonts/sever-display.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/sever-display-italic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/sever-text.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/main.css">
+  <script src="js/theme-init.js"></script>
+  <script src="js/main.js" defer></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "Ярослав Север — разработка сайтов и веб-сервисов",
+    "description": "Демонстрационный сайт: персона и контакты вымышлены. Разработка лендингов, интернет-магазинов, личных кабинетов и админок.",
+    "url": "https://example.com/",
+    "image": "https://example.com/assets/og-image.png",
+    "email": "hello@example.com",
+    "areaServed": "RU",
+    "availableLanguage": "ru",
+    "priceRange": "от 60 000 ₽",
+    "founder": {
+      "@type": "Person",
+      "name": "Ярослав Север",
+      "jobTitle": "Разработчик сайтов и веб-сервисов"
+    },
+    "sameAs": ["https://t.me/example_username"],
+    "makesOffer": [
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Сайт-визитка и лендинг" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Интернет-магазин" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Веб-сервис, личный кабинет, админка" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Доработка и поддержка сайтов" } }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Перейти к содержанию</a>
+
+  <header class="site-header" id="top">
+    <div class="site-header__inner wrap">
+      <a class="brand" href="#top" aria-label="Ярослав Север — в начало страницы">
+        <svg class="brand__mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false">
+          <rect class="brand__mark-bg" width="32" height="32" rx="7"/>
+          <path class="brand__mark-arrow" d="M16 5 L23 25 L16 20.5 L9 25 Z"/>
+        </svg>
+        <span class="brand__name">Ярослав Север</span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" hidden>
+        <span class="nav-toggle__icon" aria-hidden="true"><span></span><span></span></span>
+        <span class="nav-toggle__label">Меню</span>
+      </button>
+
+      <nav class="site-nav" id="site-nav" aria-label="Разделы страницы">
+        <ul class="site-nav__list">
+          <li><a href="#services">Услуги</a></li>
+          <li><a href="#process">Как работаю</a></li>
+          <li><a href="#work">Работы</a></li>
+          <li><a href="#prices">Цены</a></li>
+          <li><a href="#faq">Вопросы</a></li>
+        </ul>
+        <a class="btn btn--accent btn--sm site-nav__cta" href="#contact">Обсудить проект</a>
+      </nav>
+
+      <button class="theme-toggle" type="button" aria-label="Переключить тему" hidden>
+        <svg class="theme-toggle__icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+          <circle class="theme-toggle__sun" cx="12" cy="12" r="4.5"/>
+          <g class="theme-toggle__rays">
+            <path d="M12 1.5v2.5M12 20v2.5M1.5 12H4M20 12h2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/>
+          </g>
+          <path class="theme-toggle__moon" d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap hero__grid">
+        <div class="hero__copy">
+          <p class="eyebrow hero__eyebrow"><span class="status-dot" aria-hidden="true"></span>Разработчик сайтов и веб-сервисов · один исполнитель, без посредников</p>
+          <h1 class="hero__title" id="hero-title">
+            Делаю сайты, на&nbsp;которых <em>покупают</em>, а&nbsp;не&nbsp;просто смотрят.
+          </h1>
+          <p class="hero__lead">Лендинги, магазины и&nbsp;личные кабинеты для малого бизнеса — от&nbsp;брифа до&nbsp;запуска, с&nbsp;фиксированной сметой и&nbsp;одним человеком на&nbsp;связи.</p>
+          <div class="hero__actions">
+            <a class="btn btn--accent btn--lg" href="#contact">Обсудить проект <span class="btn__arrow" aria-hidden="true">→</span></a>
+            <a class="btn btn--ghost btn--lg" href="#work">Посмотреть работы</a>
+          </div>
+          <ul class="hero__facts" aria-label="Коротко об условиях">
+            <li><strong>1 рабочий день</strong><span>на&nbsp;ответ</span></li>
+            <li><strong>Смета</strong><span>фиксируется до&nbsp;старта</span></li>
+            <li><strong>Код и&nbsp;доступы</strong><span>оформляются на&nbsp;вас</span></li>
+          </ul>
+        </div>
+
+        <div class="hero__art" aria-hidden="true">
+          <div class="art">
+            <div class="art__grid"></div>
+
+            <div class="art__ruler">
+              <span class="art__ruler-line"></span>
+              <span class="art__ruler-label">1200</span>
+            </div>
+
+            <div class="browser">
+              <div class="browser__bar">
+                <span class="browser__dots"><i></i><i></i><i></i></span>
+                <span class="browser__url"><span class="browser__lock"></span>ваш-сайт.рф</span>
+              </div>
+              <div class="browser__body mock">
+                <div class="mock__nav">
+                  <span class="mock__logo"></span>
+                  <span class="mock__link"></span><span class="mock__link"></span><span class="mock__link"></span>
+                  <span class="mock__navbtn"></span>
+                </div>
+                <div class="mock__hero">
+                  <div class="mock__text">
+                    <span class="mock__kicker">Студия «Форма»</span>
+                    <span class="mock__h">Запись онлайн<br>за&nbsp;30&nbsp;секунд</span>
+                    <span class="mock__p"></span>
+                    <span class="mock__p mock__p--short"></span>
+                    <span class="mock__cta">Записаться</span>
+                  </div>
+                  <div class="mock__pic">
+                    <span class="mock__sun"></span>
+                    <span class="mock__hill mock__hill--a"></span>
+                    <span class="mock__hill mock__hill--b"></span>
+                  </div>
+                </div>
+                <div class="mock__cards">
+                  <span class="mock__card"></span><span class="mock__card"></span><span class="mock__card"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="phone">
+              <div class="phone__notch"></div>
+              <div class="phone__screen">
+                <span class="phone__h">Запись онлайн за&nbsp;30&nbsp;секунд</span>
+                <span class="phone__p"></span>
+                <span class="phone__p phone__p--short"></span>
+                <span class="phone__pic"></span>
+                <span class="phone__cta">Записаться</span>
+              </div>
+            </div>
+
+            <div class="code-chip">
+              <span class="code-chip__file">смета.ts</span>
+<pre><code><span class="tk-k">const</span> проект = {
+  срок:   <span class="tk-s">"3 недели"</span>,
+  правки: <span class="tk-n">2</span>,
+  код:    <span class="tk-s">"ваш"</span><span class="caret"></span>
+};</code></pre>
+            </div>
+
+            <div class="note note--phone">
+              <span>мобильная<br>версия —<br>первой</span>
+              <svg class="note__arrow" viewBox="0 0 60 50" width="60" height="50" focusable="false"><path d="M4 4 C30 6, 48 18, 52 44"/><path d="M44 36 L52 46 L58 34"/></svg>
+            </div>
+
+            <span class="cursor"><svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M4 2 L4 19 L8.5 15 L11.5 22 L14.5 20.7 L11.6 14 L18 14 Z"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SERVICES ============ -->
+    <section class="section services" id="services" aria-labelledby="services-title">
+      <div class="wrap">
+        <header class="section-head reveal">
+          <p class="section-head__index"><span>01</span> Услуги</p>
+          <h2 class="section-head__title" id="services-title">Что я&nbsp;делаю и&nbsp;<em>зачем</em> это вашему бизнесу</h2>
+          <p class="section-head__lead">Четыре формата работы. В&nbsp;каждом — конкретный результат, а&nbsp;не&nbsp;«комплексный подход».</p>
+        </header>
+
+        <ol class="service-list">
+          <li class="service reveal">
+            <span class="service__num" aria-hidden="true">01</span>
+            <div class="service__main">
+              <h3 class="service__title">Сайт-визитка и&nbsp;лендинг</h3>
+              <p class="service__for">Для мастеров, студий, экспертов и&nbsp;запуска нового продукта.</p>
+            </div>
+            <dl class="service__detail">
+              <div><dt>Что получаете</dt><dd>Одностраничный сайт с&nbsp;понятным предложением, формой заявки и&nbsp;мобильной версией. Тексты помогу собрать.</dd></div>
+              <div><dt>Зачем бизнесу</dt><dd>Человек из&nbsp;рекламы или соцсетей за&nbsp;полминуты понимает, что вы предлагаете, и&nbsp;оставляет заявку.</dd></div>
+            </dl>
+            <p class="service__meta"><span>от 60&nbsp;000&nbsp;₽</span><span>2–3 недели</span></p>
+          </li>
+          <li class="service reveal">
+            <span class="service__num" aria-hidden="true">02</span>
+            <div class="service__main">
+              <h3 class="service__title">Интернет-магазин</h3>
+              <p class="service__for">Для магазинов до&nbsp;нескольких тысяч товаров, которым тесно на&nbsp;маркетплейсе.</p>
+            </div>
+            <dl class="service__detail">
+              <div><dt>Что получаете</dt><dd>Каталог с&nbsp;фильтрами, корзину, онлайн-оплату, уведомления о&nbsp;заказах и&nbsp;простую админку для&nbsp;товаров.</dd></div>
+              <div><dt>Зачем бизнесу</dt><dd>Свой канал продаж без комиссии площадки и&nbsp;своя база клиентов, которую никто не&nbsp;заблокирует.</dd></div>
+            </dl>
+            <p class="service__meta"><span>от 180&nbsp;000&nbsp;₽</span><span>5–8 недель</span></p>
+          </li>
+          <li class="service reveal">
+            <span class="service__num" aria-hidden="true">03</span>
+            <div class="service__main">
+              <h3 class="service__title">Веб-сервис, личный кабинет, админка</h3>
+              <p class="service__for">Для компаний, у&nbsp;которых процессы живут в&nbsp;таблицах, чатах и&nbsp;головах сотрудников.</p>
+            </div>
+            <dl class="service__detail">
+              <div><dt>Что получаете</dt><dd>Кабинет клиента, внутреннюю панель или&nbsp;сервис под ваш процесс: роли, статусы, уведомления, выгрузки.</dd></div>
+              <div><dt>Зачем бизнесу</dt><dd>Меньше ручной работы и&nbsp;вопросов «а&nbsp;что там с&nbsp;моим заказом?». Данные в&nbsp;одном месте.</dd></div>
+            </dl>
+            <p class="service__meta"><span>от 300&nbsp;000&nbsp;₽</span><span>от 8 недель</span></p>
+          </li>
+          <li class="service reveal">
+            <span class="service__num" aria-hidden="true">04</span>
+            <div class="service__main">
+              <h3 class="service__title">Доработка и&nbsp;поддержка</h3>
+              <p class="service__for">Для&nbsp;тех, у&nbsp;кого сайт уже есть, а&nbsp;прежний разработчик пропал.</p>
+            </div>
+            <dl class="service__detail">
+              <div><dt>Что получаете</dt><dd>Аудит, список проблем по&nbsp;приоритету, исправления, ускорение загрузки, обновления и&nbsp;резервные копии.</dd></div>
+              <div><dt>Зачем бизнесу</dt><dd>Сайт перестаёт ломаться в&nbsp;самый неудобный момент, а&nbsp;у&nbsp;вас появляется человек, который за&nbsp;него отвечает.</dd></div>
+            </dl>
+            <p class="service__meta"><span>от 3&nbsp;000&nbsp;₽/час</span><span>или абонемент</span></p>
+          </li>
+        </ol>
+
+        <aside class="cta-strip reveal" aria-label="Обсудить проект">
+          <p class="cta-strip__text">Не&nbsp;уверены, какой формат нужен? Опишите задачу в&nbsp;двух словах — подскажу честно, даже если ответ «вам хватит готового конструктора».</p>
+          <a class="btn btn--accent btn--lg" href="#contact">Обсудить проект <span class="btn__arrow" aria-hidden="true">→</span></a>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ PROCESS ============ -->
+    <section class="section process" id="process" aria-labelledby="process-title">
+      <div class="wrap">
+        <header class="section-head reveal">
+          <p class="section-head__index"><span>02</span> Как работаю</p>
+          <h2 class="section-head__title" id="process-title">Пять шагов. На&nbsp;каждом вы&nbsp;<em><span class="nowrap">что-то</span> получаете</em> на&nbsp;руки.</h2>
+          <p class="section-head__lead">Никаких «мы&nbsp;работаем, ждите». Вы видите прогресс и&nbsp;можете остановиться после любого шага.</p>
+        </header>
+
+        <ol class="steps">
+          <li class="step reveal">
+            <p class="step__time">1–2 дня</p>
+            <h3 class="step__title">Разговор и&nbsp;бриф</h3>
+            <p class="step__text">Созвон на&nbsp;30&nbsp;минут: кто ваши клиенты, что они должны сделать на&nbsp;сайте, что уже есть.</p>
+            <p class="step__out"><span>На выходе</span>Короткий бриф — одна страница, которую понимают оба.</p>
+          </li>
+          <li class="step reveal">
+            <p class="step__time">3–5 дней</p>
+            <h3 class="step__title">Структура и&nbsp;смета</h3>
+            <p class="step__text">Собираю карту страниц и&nbsp;черновой прототип. Считаю объём по&nbsp;пунктам.</p>
+            <p class="step__out"><span>На выходе</span>Прототип, фиксированная смета и&nbsp;график с&nbsp;датами.</p>
+          </li>
+          <li class="step reveal">
+            <p class="step__time">1–2 недели</p>
+            <h3 class="step__title">Дизайн</h3>
+            <p class="step__text">Сначала мобильная версия, потом десктоп. Два круга правок входят в&nbsp;цену.</p>
+            <p class="step__out"><span>На выходе</span>Макеты ключевых экранов в&nbsp;Figma, согласованные с&nbsp;вами.</p>
+          </li>
+          <li class="step reveal">
+            <p class="step__time">1–4 недели</p>
+            <h3 class="step__title">Разработка и&nbsp;проверка</h3>
+            <p class="step__text">Раз в&nbsp;неделю показываю, что готово. Проверяю на&nbsp;телефонах, в&nbsp;разных браузерах и&nbsp;с&nbsp;клавиатуры.</p>
+            <p class="step__out"><span>На выходе</span>Рабочий сайт на&nbsp;тестовом адресе — можно кликать и&nbsp;показывать коллегам.</p>
+          </li>
+          <li class="step reveal">
+            <p class="step__time">1–2 дня + 30 дней</p>
+            <h3 class="step__title">Запуск и&nbsp;месяц поддержки</h3>
+            <p class="step__text">Переношу на&nbsp;ваш домен и&nbsp;хостинг, подключаю почту и&nbsp;формы. Месяц исправляю ошибки бесплатно.</p>
+            <p class="step__out"><span>На выходе</span>Доступы, репозиторий с&nbsp;кодом и&nbsp;инструкция, как менять тексты.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ WORK ============ -->
+    <section class="section work" id="work" aria-labelledby="work-title">
+      <div class="wrap">
+        <header class="section-head reveal">
+          <p class="section-head__index"><span>03</span> Работы</p>
+          <h2 class="section-head__title" id="work-title">Три концепта, <em>сделанных для себя</em></h2>
+          <p class="section-head__lead">Это не&nbsp;клиентские проекты: я собрал их, чтобы показать подход. Задачи — типичные для&nbsp;малого бизнеса, цифр «роста продаж» здесь нет и&nbsp;не&nbsp;будет.</p>
+        </header>
+
+        <div class="cases">
+          <article class="case reveal" aria-labelledby="case-1-title">
+            <div class="case__shot shot shot--bakery" aria-hidden="true">
+              <div class="shot__frame">
+                <div class="sb-top"><span class="sb-logo">Опара</span><span class="sb-pill">Предзаказ</span></div>
+                <div class="sb-hero">
+                  <span class="sb-h">Хлеб к&nbsp;восьми утра</span>
+                  <span class="sb-loaf"></span>
+                </div>
+                <div class="sb-menu">
+                  <span><b>Тартин на закваске</b><i>320 ₽</i></span>
+                  <span><b>Багет</b><i>140 ₽</i></span>
+                  <span><b>Синнабон</b><i>190 ₽</i></span>
+                </div>
+              </div>
+            </div>
+            <div class="case__body">
+              <p class="case__tags"><span class="tag tag--concept">Концепт</span><span class="tag">Лендинг</span></p>
+              <h3 class="case__title" id="case-1-title">«Опара» — предзаказ для пекарни</h3>
+              <dl class="case__facts">
+                <div><dt>Задача</dt><dd>Дать маленькой пекарне способ принимать предзаказ на&nbsp;завтра без маркетплейсов и&nbsp;переписки в&nbsp;мессенджерах.</dd></div>
+                <div><dt>Что сделано</dt><dd>Меню из&nbsp;одного файла, который правится без программиста; форма с&nbsp;выбором времени выдачи; письмо-подтверждение.</dd></div>
+              </dl>
+              <p class="case__stack">HTML · CSS · JavaScript · без фреймворков</p>
+            </div>
+          </article>
+
+          <article class="case reveal" aria-labelledby="case-2-title">
+            <div class="case__shot shot shot--repair" aria-hidden="true">
+              <div class="shot__frame">
+                <div class="sr-head"><span class="sr-title">Квартира на Лесной, 12</span><span class="sr-badge">Этап 3 из 5</span></div>
+                <div class="sr-bar"><span></span></div>
+                <ul class="sr-list">
+                  <li class="is-done"><i></i>Демонтаж</li>
+                  <li class="is-done"><i></i>Электрика</li>
+                  <li class="is-now"><i></i>Стяжка пола<b>фото · 6</b></li>
+                  <li><i></i>Отделка</li>
+                </ul>
+              </div>
+            </div>
+            <div class="case__body">
+              <p class="case__tags"><span class="tag tag--concept">Концепт</span><span class="tag">Личный кабинет</span></p>
+              <h3 class="case__title" id="case-2-title">«Стяжка» — кабинет клиента ремонтной бригады</h3>
+              <dl class="case__facts">
+                <div><dt>Задача</dt><dd>Избавить прораба от&nbsp;звонков «как там дела?»: клиент сам видит этап, фото и&nbsp;смету.</dd></div>
+                <div><dt>Что сделано</dt><dd>Вход по&nbsp;ссылке без пароля, лента этапов с&nbsp;фотоотчётами, согласование доп.&nbsp;работ одной кнопкой.</dd></div>
+              </dl>
+              <p class="case__stack">TypeScript · Next.js · PostgreSQL</p>
+            </div>
+          </article>
+
+          <article class="case reveal" aria-labelledby="case-3-title">
+            <div class="case__shot shot shot--stock" aria-hidden="true">
+              <div class="shot__frame">
+                <div class="ss-side"><i></i><i class="is-on"></i><i></i><i></i></div>
+                <div class="ss-main">
+                  <div class="ss-head"><span class="ss-title">Остатки</span><span class="ss-search"></span></div>
+                  <div class="ss-row ss-row--th"><span>Товар</span><span>Склад</span><span></span></div>
+                  <div class="ss-row"><span>Кружка 350 мл</span><span>48</span><span class="ss-meter ss-meter--a"></span></div>
+                  <div class="ss-row"><span>Чайник 1,2 л</span><span>7</span><span class="ss-meter ss-meter--b is-low"></span></div>
+                  <div class="ss-row"><span>Френч-пресс</span><span>23</span><span class="ss-meter ss-meter--c"></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="case__body">
+              <p class="case__tags"><span class="tag tag--concept">Концепт</span><span class="tag">Админка</span></p>
+              <h3 class="case__title" id="case-3-title">«Полка» — учёт остатков для небольшого магазина</h3>
+              <dl class="case__facts">
+                <div><dt>Задача</dt><dd>Заменить общую таблицу, в&nbsp;которой три продавца одновременно правят остатки и&nbsp;теряют изменения.</dd></div>
+                <div><dt>Что сделано</dt><dd>Роли и&nbsp;журнал изменений, импорт из&nbsp;CSV, подсветка товаров, которые скоро закончатся.</dd></div>
+              </dl>
+              <p class="case__stack">TypeScript · React · Node.js · SQLite</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STACK & APPROACH ============ -->
+    <section class="section approach" id="approach" aria-labelledby="approach-title">
+      <div class="wrap approach__grid">
+        <header class="section-head reveal">
+          <p class="section-head__index"><span>04</span> Стек и&nbsp;подход</p>
+          <h2 class="section-head__title" id="approach-title">Скучные технологии, <em>аккуратная</em> работа</h2>
+          <p class="section-head__lead">Беру проверенные инструменты, под которые легко найти другого разработчика. Вы не&nbsp;должны зависеть от&nbsp;меня.</p>
+        </header>
+
+        <ul class="principles">
+          <li class="principle reveal">
+            <h3 class="principle__title">Сначала телефон</h3>
+            <p>Мобильную версию проектирую и&nbsp;проверяю первой, а&nbsp;не&nbsp;подгоняю в&nbsp;конце.</p>
+          </li>
+          <li class="principle reveal">
+            <h3 class="principle__title">Скорость — требование</h3>
+            <p>Цель — Lighthouse 90+ на&nbsp;мобильном и&nbsp;загрузка первого экрана быстрее 2,5&nbsp;секунды. Проверяю перед сдачей, а&nbsp;не&nbsp;«потом».</p>
+          </li>
+          <li class="principle reveal">
+            <h3 class="principle__title">Доступность</h3>
+            <p>Сайт работает с&nbsp;клавиатуры, читается при увеличенном шрифте и&nbsp;не&nbsp;теряет контраст в&nbsp;тёмной теме.</p>
+          </li>
+          <li class="principle reveal">
+            <h3 class="principle__title">Всё остаётся у&nbsp;вас</h3>
+            <p>Домен и&nbsp;хостинг — на&nbsp;ваше имя, код — в&nbsp;вашем репозитории, к&nbsp;нему — понятная инструкция.</p>
+          </li>
+        </ul>
+
+        <dl class="stack reveal">
+          <div class="stack__row"><dt>Интерфейсы</dt><dd>HTML, CSS, TypeScript, React, Next.js, Astro</dd></div>
+          <div class="stack__row"><dt>Сервер и&nbsp;данные</dt><dd>Node.js, PostgreSQL, SQLite, REST</dd></div>
+          <div class="stack__row"><dt>Контент</dt><dd>Headless CMS или&nbsp;простые файлы&nbsp;— что удобнее вам</dd></div>
+          <div class="stack__row"><dt>Запуск</dt><dd>Docker, Nginx, статический хостинг, резервные копии</dd></div>
+          <div class="stack__row"><dt>Оплата и&nbsp;связь</dt><dd>Платёжные шлюзы, почта, уведомления в&nbsp;Telegram</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ============ PRICES ============ -->
+    <section class="section prices" id="prices" aria-labelledby="prices-title">
+      <div class="wrap">
+        <header class="section-head reveal">
+          <p class="section-head__index"><span>05</span> Пакеты и&nbsp;цены</p>
+          <h2 class="section-head__title" id="prices-title">Порядок цен — <em>до&nbsp;первого звонка</em></h2>
+          <p class="section-head__lead">Цифры ориентировочные. Точная смета — после брифа, и&nbsp;дальше она не&nbsp;растёт без вашего согласия.</p>
+        </header>
+
+        <div class="plans">
+          <article class="plan reveal" aria-labelledby="plan-1">
+            <h3 class="plan__name" id="plan-1">Старт</h3>
+            <p class="plan__for">Лендинг или&nbsp;визитка</p>
+            <p class="plan__price"><span class="plan__from">от</span>&nbsp;60&nbsp;000&nbsp;<span class="plan__cur">₽</span></p>
+            <p class="plan__time">2–3 недели</p>
+            <ul class="plan__list">
+              <li>Одна страница, до&nbsp;8 блоков</li>
+              <li>Дизайн под ваш бренд, без шаблона</li>
+              <li>Форма заявки на&nbsp;почту и&nbsp;в&nbsp;Telegram</li>
+              <li>Базовое SEO и&nbsp;метатеги</li>
+              <li>Месяц поддержки после запуска</li>
+            </ul>
+          </article>
+          <article class="plan plan--feature reveal" aria-labelledby="plan-2">
+            <h3 class="plan__name" id="plan-2">Магазин</h3>
+            <p class="plan__for">Каталог с&nbsp;оплатой</p>
+            <p class="plan__price"><span class="plan__from">от</span>&nbsp;180&nbsp;000&nbsp;<span class="plan__cur">₽</span></p>
+            <p class="plan__time">5–8 недель</p>
+            <ul class="plan__list">
+              <li>Каталог, фильтры, карточки товаров</li>
+              <li>Корзина и&nbsp;онлайн-оплата</li>
+              <li>Админка для&nbsp;товаров и&nbsp;заказов</li>
+              <li>Импорт каталога из&nbsp;таблицы</li>
+              <li>Месяц поддержки после запуска</li>
+            </ul>
+          </article>
+          <article class="plan reveal" aria-labelledby="plan-3">
+            <h3 class="plan__name" id="plan-3">Сервис</h3>
+            <p class="plan__for">Кабинет, админка, MVP</p>
+            <p class="plan__price"><span class="plan__from">от</span>&nbsp;300&nbsp;000&nbsp;<span class="plan__cur">₽</span></p>
+            <p class="plan__time">от 8 недель</p>
+            <ul class="plan__list">
+              <li>Проектирование под ваш процесс</li>
+              <li>Роли, права, журнал действий</li>
+              <li>Интеграции: оплата, почта, CRM</li>
+              <li>Документация и&nbsp;передача кода</li>
+              <li>Месяц поддержки включён</li>
+            </ul>
+          </article>
+        </div>
+        <p class="prices__note reveal">Цены на&nbsp;этой странице — демонстрационные. Оплата этапами: 30&nbsp;% до&nbsp;старта, остальное — по&nbsp;факту сдачи каждого этапа.</p>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="section faq" id="faq" aria-labelledby="faq-title">
+      <div class="wrap faq__grid">
+        <header class="section-head reveal">
+          <p class="section-head__index"><span>06</span> Вопросы</p>
+          <h2 class="section-head__title" id="faq-title">То, о&nbsp;чём обычно <em>спрашивают</em> до&nbsp;договора</h2>
+        </header>
+
+        <div class="faq__list reveal">
+          <details class="qa">
+            <summary class="qa__q">Почему так долго? Мне нужно к&nbsp;пятнице.</summary>
+            <div class="qa__a"><p>Лендинг за&nbsp;неделю возможен, если тексты и&nbsp;фото уже готовы и&nbsp;вы на&nbsp;связи каждый день. Основное время уходит не&nbsp;на&nbsp;код, а&nbsp;на&nbsp;согласования. Честный срок назову после брифа, и&nbsp;он попадёт в&nbsp;договор.</p></div>
+          </details>
+          <details class="qa">
+            <summary class="qa__q">Сколько правок можно внести?</summary>
+            <div class="qa__a"><p>Два круга правок на&nbsp;дизайн и&nbsp;один на&nbsp;готовый сайт входят в&nbsp;цену. Мелочи — опечатки, цвет кнопки — правлю без счёта. Если меняется сама задача, сначала обсуждаем, сколько это стоит, и&nbsp;только потом делаем.</p></div>
+          </details>
+          <details class="qa">
+            <summary class="qa__q">Что будет после запуска? Вы не&nbsp;пропадёте?</summary>
+            <div class="qa__a"><p>Первый месяц исправляю ошибки бесплатно. Дальше — почасовая работа или&nbsp;абонемент с&nbsp;понятным временем реакции. А&nbsp;если я&nbsp;всё-таки пропаду, у&nbsp;вас останутся код, доступы и&nbsp;инструкция — любой разработчик сможет продолжить.</p></div>
+          </details>
+          <details class="qa">
+            <summary class="qa__q">Кому принадлежат код и&nbsp;дизайн?</summary>
+            <div class="qa__a"><p>Вам, полностью. Исключительные права передаются по&nbsp;договору после оплаты. Репозиторий, домен и&nbsp;хостинг сразу оформляются на&nbsp;вас, а&nbsp;не&nbsp;на&nbsp;меня.</p></div>
+          </details>
+          <details class="qa">
+            <summary class="qa__q">Как устроена оплата?</summary>
+            <div class="qa__a"><p>По&nbsp;договору, этапами: 30&nbsp;% предоплата, остальное — после приёмки каждого этапа. Работаю как самозанятый, выдаю чек. Если остановимся на&nbsp;середине, платите только за&nbsp;сделанное.</p></div>
+          </details>
+          <details class="qa">
+            <summary class="qa__q">Что нужно от&nbsp;меня?</summary>
+            <div class="qa__a"><p>Полчаса на&nbsp;созвон в&nbsp;начале, ответы на&nbsp;вопросы в&nbsp;течение пары дней и&nbsp;одно лицо, которое принимает решения. Тексты и&nbsp;фото — желательно ваши; если их нет, помогу составить план и&nbsp;подскажу, где взять.</p></div>
+          </details>
+          <details class="qa">
+            <summary class="qa__q">А&nbsp;почему не&nbsp;Тильда или&nbsp;готовый конструктор?</summary>
+            <div class="qa__a"><p>Иногда конструктора достаточно — и&nbsp;я так и&nbsp;скажу. Свой код нужен, когда важны скорость загрузки, нестандартная логика, интеграции или&nbsp;когда не&nbsp;хочется платить подписку за&nbsp;каждую функцию.</p></div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section class="section contact" id="contact" aria-labelledby="contact-title">
+      <div class="wrap contact__grid">
+        <div class="contact__intro reveal">
+          <p class="section-head__index"><span>07</span> Контакт</p>
+          <h2 class="contact__title" id="contact-title">Расскажите о&nbsp;задаче. Отвечу <em>в&nbsp;течение рабочего дня.</em></h2>
+
+          <ul class="direct" aria-label="Прямые контакты">
+            <li class="direct__item">
+              <span class="direct__label">Почта</span>
+              <a class="direct__link" href="mailto:hello@example.com">hello@example.com</a>
+              <button class="copy-btn" type="button" data-copy="hello@example.com" hidden>Скопировать</button>
+            </li>
+            <li class="direct__item">
+              <span class="direct__label">Telegram</span>
+              <a class="direct__link" href="https://t.me/example_username" target="_blank" rel="noopener noreferrer">@example_username<span class="visually-hidden"> (откроется в новой вкладке)</span></a>
+            </li>
+          </ul>
+          <p class="copy-status" role="status" aria-live="polite"></p>
+
+          <ol class="next">
+            <li><b>Сегодня–завтра</b> отвечу и&nbsp;задам 2–3 уточняющих вопроса.</li>
+            <li><b>В&nbsp;течение недели</b> созвонимся на&nbsp;30&nbsp;минут — бесплатно и&nbsp;без обязательств.</li>
+            <li><b>Через 3–5 дней</b> пришлю структуру, смету и&nbsp;сроки.</li>
+          </ol>
+        </div>
+
+        <form class="form reveal" id="brief-form" action="mailto:hello@example.com" method="post" enctype="text/plain" aria-labelledby="form-title">
+          <h3 class="form__title" id="form-title">Короткий бриф</h3>
+          <p class="form__hint">Форма соберёт письмо и&nbsp;откроет вашу почтовую программу. На&nbsp;сервер ничего не&nbsp;отправляется.</p>
+
+          <div class="field">
+            <label class="field__label" for="f-name">Как к&nbsp;вам обращаться</label>
+            <input class="field__input" id="f-name" name="name" type="text" autocomplete="name" maxlength="80" required aria-describedby="f-name-err">
+            <p class="field__error" id="f-name-err"></p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="f-contact">Почта или&nbsp;Telegram для&nbsp;ответа</label>
+            <input class="field__input" id="f-contact" name="contact" type="text" autocomplete="email" maxlength="120" required aria-describedby="f-contact-hint f-contact-err" inputmode="email">
+            <p class="field__hint" id="f-contact-hint">Например, name@mail.ru или&nbsp;@username</p>
+            <p class="field__error" id="f-contact-err"></p>
+          </div>
+
+          <fieldset class="field field--choices">
+            <legend class="field__label">Что нужно</legend>
+            <div class="chips">
+              <label class="chip"><input type="radio" name="type" value="Лендинг или визитка" checked><span>Лендинг</span></label>
+              <label class="chip"><input type="radio" name="type" value="Интернет-магазин"><span>Магазин</span></label>
+              <label class="chip"><input type="radio" name="type" value="Веб-сервис или кабинет"><span>Сервис</span></label>
+              <label class="chip"><input type="radio" name="type" value="Доработка или поддержка"><span>Доработка</span></label>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label class="field__label" for="f-msg">Задача в&nbsp;двух-трёх фразах</label>
+            <textarea class="field__input field__input--area" id="f-msg" name="message" rows="4" maxlength="600" required aria-describedby="f-msg-err"></textarea>
+            <p class="field__error" id="f-msg-err"></p>
+          </div>
+
+          <div class="field field--hp" aria-hidden="true">
+            <label for="f-website">Не заполняйте это поле</label>
+            <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
+          </div>
+
+          <div class="field field--check">
+            <label class="check">
+              <input type="checkbox" id="f-consent" name="consent" required aria-describedby="f-consent-err">
+              <span>Согласен на&nbsp;обработку данных для&nbsp;ответа на&nbsp;заявку по&nbsp;<a href="privacy.html">политике конфиденциальности</a></span>
+            </label>
+            <p class="field__error" id="f-consent-err"></p>
+          </div>
+
+          <button class="btn btn--accent btn--lg btn--block" type="submit">Обсудить проект <span class="btn__arrow" aria-hidden="true">→</span></button>
+          <p class="form__status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap site-footer__inner">
+      <p class="site-footer__brand">Ярослав Север</p>
+      <ul class="site-footer__links">
+        <li><a href="mailto:hello@example.com">hello@example.com</a></li>
+        <li><a href="https://t.me/example_username" target="_blank" rel="noopener noreferrer">Telegram<span class="visually-hidden"> (откроется в новой вкладке)</span></a></li>
+        <li><a href="privacy.html">Политика конфиденциальности</a></li>
+      </ul>
+      <p class="site-footer__demo">Демо: имя и&nbsp;контакты вымышлены, цены ориентировочные. Сайт без трекеров и&nbsp;cookie.</p>
+      <p class="site-footer__copy">© <span class="js-year">2026</span> · <a href="#top">Наверх ↑</a></p>
+    </div>
+  </footer>
+</body>
+</html>
