@@ -1,66 +1,87 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-season="autumn">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <title>Политика конфиденциальности — Ярослав Север</title>
-  <meta name="description" content="Как сайт обращается с данными: без cookie, без трекеров, форма не отправляет данные на сервер.">
+  <title>Политика конфиденциальности — Ferz, Эдуард Торгашов</title>
+  <meta name="description" content="Какие данные собирает форма заявки на сайте Эдуарда Торгашова (Ferz), зачем, сколько они хранятся и как их удалить.">
+  <!-- [ЗАПОЛНИТЬ: домен] -->
   <link rel="canonical" href="https://example.com/privacy.html">
+  <meta name="theme-color" content="#f9f3ea" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#150809" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="assets/fonts/sever-display.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preload" href="assets/fonts/ferz-display-cyr.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/ferz-text.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/privacy.css">
   <script src="js/theme-init.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Перейти к содержанию</a>
-  <header class="site-header is-scrolled">
+  <header class="site-header">
     <div class="site-header__inner wrap">
-      <a class="brand" href="index.html" aria-label="Ярослав Север — на главную">
-        <svg class="brand__mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false">
-          <rect class="brand__mark-bg" width="32" height="32" rx="7"/>
-          <path class="brand__mark-arrow" d="M16 5 L23 25 L16 20.5 L9 25 Z"/>
-        </svg>
-        <span class="brand__name">Ярослав Север</span>
+      <a class="brand" href="index.html" aria-label="Ferz, Эдуард Торгашов — на главную">
+        <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 64 64" width="26" height="26" focusable="false"><path d="M14 58h36v-4.5c0-2-1.6-3.5-3.6-3.5H17.6c-2 0-3.6 1.5-3.6 3.5zM20 48h24c-2.2-6.5-5.4-12-6.4-19h-11.2c-1 7-4.2 12.5-6.4 19zM22.6 27h18.8l3.6-13-6.8 7-3.2-10-3 9-3-9-3.2 10-6.8-7z"/><circle cx="19" cy="12" r="3"/><circle cx="28.8" cy="8.6" r="3"/><circle cx="35.2" cy="8.6" r="3"/><circle cx="45" cy="12" r="3"/><circle cx="32" cy="4.4" r="3.4"/></svg></span>
+        <span class="brand__text">
+          <span class="brand__nick" lang="en">Ferz</span>
+          <span class="brand__name">Эдуард Торгашов</span>
+        </span>
       </a>
       <a class="btn btn--ghost btn--sm" href="index.html">← На главную</a>
     </div>
   </header>
 
   <main id="main" class="legal wrap" tabindex="-1">
-    <p class="section-head__index"><span>§</span> Документ</p>
-    <h1 class="legal__title">Политика конфиденциальности</h1>
-    <p class="legal__note"><strong>Это демонстрационный сайт.</strong> Имя, контакты и&nbsp;цены вымышлены. Текст ниже описывает, как сайт устроен на&nbsp;самом деле, но&nbsp;не&nbsp;является юридической консультацией: перед публикацией настоящего сайта политику нужно адаптировать под&nbsp;оператора данных и&nbsp;требования 152-ФЗ.</p>
+    <p class="move-head__tag"><span class="move-head__square" aria-hidden="true"></span>Документ</p>
+    <h1 class="legal__title display">Политика конфиден&shy;циальности</h1>
+    <p class="legal__lead">Кратко и&nbsp;по-честному: какие данные я&nbsp;получаю через этот сайт, зачем, сколько храню и&nbsp;как их удалить.</p>
 
-    <h2>Что собирает сайт</h2>
-    <p>Ничего. На&nbsp;сайте нет cookie, счётчиков посещений, аналитики, пикселей рекламных сетей и&nbsp;сторонних скриптов. Шрифты загружаются с&nbsp;того&nbsp;же сервера, что и&nbsp;страница.</p>
+    <h2>Кто обрабатывает данные</h2>
+    <p>Эдуард Торгашов, физическое лицо, г.&nbsp;Челябинск. Связаться по&nbsp;вопросам данных: <a href="mailto:hello@example.com">hello@example.com</a> <span class="todo">[ЗАПОЛНИТЬ: почта]</span>.</p>
 
-    <h2>Что хранится в&nbsp;вашем браузере</h2>
+    <h2>Что собирает форма заявки</h2>
     <ul>
-      <li><b>Выбранная тема</b> (светлая или тёмная) — в&nbsp;<code>localStorage</code>, чтобы не&nbsp;переключать её при каждом визите.</li>
-      <li><b>Время последней отправки формы</b> — в&nbsp;<code>sessionStorage</code>, чтобы ограничить повторные отправки. Удаляется при закрытии вкладки.</li>
+      <li>имя или&nbsp;то, как к&nbsp;вам обращаться;</li>
+      <li>контакт для&nbsp;ответа — почта или ник в&nbsp;Telegram;</li>
+      <li>тип проекта и&nbsp;описание задачи, которое вы напишете сами.</li>
     </ul>
-    <p>Эти данные не&nbsp;покидают ваше устройство. Их можно удалить в&nbsp;настройках браузера.</p>
+    <p>Больше форма ничего не&nbsp;собирает. Как именно заявка доставляется ко&nbsp;мне: <span class="todo">[ЗАПОЛНИТЬ: способ отправки формы — почта / сервис форм]</span>.</p>
 
-    <h2>Форма «Короткий бриф»</h2>
-    <p>Форма не&nbsp;отправляет данные на&nbsp;сервер. Она собирает текст письма и&nbsp;открывает вашу почтовую программу. Письмо уходит, только если вы сами нажмёте «Отправить» в&nbsp;почте.</p>
-    <p>Из письма я&nbsp;получаю то, что вы указали: имя, контакт для&nbsp;ответа и&nbsp;описание задачи. Эти данные используются только для&nbsp;ответа на&nbsp;заявку и&nbsp;обсуждения проекта, не&nbsp;передаются третьим лицам и&nbsp;не&nbsp;используются для&nbsp;рассылок.</p>
+    <h2>Зачем</h2>
+    <p>Только чтобы ответить на&nbsp;заявку и&nbsp;обсудить ваш проект. Данные не&nbsp;продаются, не&nbsp;передаются третьим лицам для&nbsp;их целей и&nbsp;не&nbsp;используются для&nbsp;рассылок.</p>
 
     <h2>Сколько храню и&nbsp;как удалить</h2>
-    <p>Переписка хранится, пока идёт обсуждение или работа над проектом, и&nbsp;не&nbsp;дольше трёх лет после последнего письма. Чтобы удалить свои данные, напишите на&nbsp;<a href="mailto:hello@example.com">hello@example.com</a> — удалю в&nbsp;течение 10&nbsp;рабочих дней и&nbsp;подтвержу ответом.</p>
+    <p>Переписку храню, пока мы обсуждаем или делаем проект, и&nbsp;не&nbsp;дольше <span class="todo">[ЗАПОЛНИТЬ: срок хранения]</span> после последнего сообщения.</p>
+    <p>Чтобы удалить свои данные, напишите на&nbsp;почту выше — удалю и&nbsp;подтвержу ответом.</p>
 
-    <h2>Telegram и&nbsp;почтовые сервисы</h2>
-    <p>Если вы пишете в&nbsp;Telegram или через свой почтовый сервис, на&nbsp;передачу данных распространяются правила этих сервисов.</p>
+    <h2>Cookie, аналитика и&nbsp;хранилище браузера</h2>
+    <ul>
+      <li><b>Cookie</b> сайт не&nbsp;использует. Рекламных трекеров и&nbsp;пикселей нет.</li>
+      <li><b>Аналитика:</b> планируется приватная, без cookie и&nbsp;без сбора персональных данных. На&nbsp;момент этой редакции она не&nbsp;подключена. <span class="todo">[ЗАПОЛНИТЬ: сервис аналитики после подключения]</span></li>
+      <li><b>Выбранная тема</b> (светлая или тёмная) запоминается в&nbsp;<code>localStorage</code> вашего браузера и&nbsp;никуда не&nbsp;отправляется.</li>
+      <li><b>Время последней отправки формы</b> хранится в&nbsp;<code>sessionStorage</code>, чтобы ограничить повторные отправки, и&nbsp;удаляется при закрытии вкладки.</li>
+    </ul>
+    <p>Шрифты и&nbsp;все файлы сайта загружаются с&nbsp;того&nbsp;же сервера, что и&nbsp;страница.</p>
 
-    <p class="legal__date">Редакция от&nbsp;15&nbsp;октября 2026&nbsp;года.</p>
+    <h2>Telegram и&nbsp;почта</h2>
+    <p>Если вы пишете мне в&nbsp;Telegram, через Telegram-бота или со&nbsp;своей почты, на&nbsp;передачу сообщений распространяются также правила этих сервисов.</p>
+
+    <p class="legal__date">Редакция от&nbsp;16&nbsp;октября 2026&nbsp;года.</p>
   </main>
 
-  <footer class="site-footer">
+  <footer class="site-footer scope-wine">
     <div class="wrap site-footer__inner">
-      <p class="site-footer__demo">Демо: имя и&nbsp;контакты вымышлены. Сайт без трекеров и&nbsp;cookie.</p>
-      <p class="site-footer__copy"><a href="index.html">← На главную</a></p>
+      <div class="site-footer__brand">
+        <p class="site-footer__name">Эдуард Торгашов</p>
+        <p class="site-footer__role">Сайты, Telegram-боты и&nbsp;веб-сервисы · Челябинск, удалённо</p>
+      </div>
+      <ul class="site-footer__links" role="list">
+        <li><a href="index.html">На главную</a></li>
+        <li><a href="index.html#contact">Обсудить проект</a></li>
+      </ul>
     </div>
   </footer>
 </body>

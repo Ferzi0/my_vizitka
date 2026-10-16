@@ -1,5 +1,8 @@
-/* Ярослав Север — взаимодействия страницы.
-   Без зависимостей. Каждый модуль изолирован: ошибка в одном не ломает остальные. */
+/* Ferz — Эдуард Торгашов: взаимодействия страницы.
+   Без зависимостей. Каждый модуль изолирован: ошибка в одном не ломает остальные.
+   Этап 1–2: тема, меню, шапка, копирование, базовая форма (mailto).
+   Этап 3 добавит прогрессию: --progress на <html>, --section-progress на .section-move,
+   --q-file/--q-rank и .queen-layer__move для «идущего ферзя» (см. комментарий в начале main.css). */
 (function () {
   'use strict';
 
@@ -31,9 +34,9 @@
       btn.setAttribute('aria-label', isDark ? 'Включить светлую тему' : 'Включить тёмную тему');
       btn.title = isDark ? 'Светлая тема' : 'Тёмная тема';
       // Цвет панели браузера следует за выбранной темой
-      var color = isDark ? '#0e1117' : '#f3eee4';
-      if (metaLight) metaLight.setAttribute('content', root.hasAttribute('data-theme') ? color : '#f3eee4');
-      if (metaDark) metaDark.setAttribute('content', root.hasAttribute('data-theme') ? color : '#0e1117');
+      var color = isDark ? '#150809' : '#f9f3ea'; // = --bg тем (см. main.css)
+      if (metaLight) metaLight.setAttribute('content', root.hasAttribute('data-theme') ? color : '#f9f3ea');
+      if (metaDark) metaDark.setAttribute('content', root.hasAttribute('data-theme') ? color : '#150809');
     }
     btn.hidden = false;
     btn.addEventListener('click', function () {
@@ -102,7 +105,7 @@
       window.addEventListener('scroll', function () {
         if (!ticking) { ticking = true; window.requestAnimationFrame(update); }
       }, { passive: true });
-      update();
+      window.requestAnimationFrame(update); // не читаем scrollY синхронно при старте (лишний reflow)
     }
 
     if (!('IntersectionObserver' in window)) return;
@@ -205,7 +208,7 @@
   function initForm() {
     var form = document.getElementById('brief-form');
     if (!form) return;
-    var TO = 'hello@example.com';
+    var TO = 'hello@example.com'; // [ЗАПОЛНИТЬ: почта]
     var COOLDOWN_MS = 30000;
     var KEY = 'brief-last-sent';
     var status = form.querySelector('.form__status');
@@ -344,7 +347,7 @@
         name: cleanLine(fields.name.value, 80),
         contact: cleanLine(fields.contact.value, 120),
         type: typeInput ? cleanLine(typeInput.value, 60) : '',
-        message: clean(fields.message.value, 600)
+        message: clean(fields.message.value, 1000)
       };
       var subject = 'Заявка с сайта: ' + data.type;
       var body = [

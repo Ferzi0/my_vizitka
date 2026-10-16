@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
+# [ЗАПОЛНИТЬ: домен] example.com — заглушка
 Sitemap: https://example.com/sitemap.xml
