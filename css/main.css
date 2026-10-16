@@ -19,11 +19,16 @@
    после смены сезона всё равно перепроверьте контраст (см. STATUS.md, раздел проверки).
    Цвет полоски браузера: meta theme-color в index.html и значения в js/main.js.
 
-   Крючки для этапа JS (прогрессия при прокрутке):
-     --progress          0…1 — общая прогрессия страницы (по умолчанию 0);
-     --section-progress  0…1 — прогрессия раздела, ставится на .section-move (по умолчанию 1:
-                               без JS всё выглядит законченным);
-     --q-file / --q-rank — клетка ферзя в .queen-layer (по умолчанию d1 = 4 / 1).
+   Прогрессия при прокрутке (пишет js/main.js, initProgress; значения по умолчанию —
+   законченная статичная композиция: так страница выглядит без JS и при reduced-motion):
+     --progress          0…1 — общая прогрессия страницы (полоска в шапке);
+     --section-progress  0…1 — «приход» раздела, на .section-move (по умолчанию 1): заливка
+                               контурного номера хода, шахматная сетка фона, значок клетки;
+     --hero-p            0…1 — сколько первого экрана уже прокручено (наклон и парение ферзя);
+     --move              0…6 — непрерывный номер хода (полоса ходов на узких экранах);
+     --q-file / --q-rank — клетка ферзя на мини-доске (дробные во время хода; по умолчанию d1 = 4 / 1);
+     --trail             0…1 — пройденная часть пути ферзя на мини-доске.
+   Меняются только transform / opacity и заливки маленьких элементов — без пересчёта раскладки.
    ========================================================================== */
 
 /* ---------- 1. Шрифты (self-hosted, OFL 1.1, лицензии в assets/fonts/) ----------
@@ -60,8 +65,11 @@
 /* ---------- 2. Хуки прогрессии (безопасные значения без JS) ---------- */
 :root {
   --progress: 0;
+  --hero-p: 0;
+  --move: 0;
   --q-file: 4;
   --q-rank: 1;
+  --trail: 0;
 }
 .section-move { --section-progress: 1; }
 
@@ -541,7 +549,10 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
   -webkit-backdrop-filter: saturate(1.3) blur(14px);
   backdrop-filter: saturate(1.3) blur(14px);
   border-bottom: 1px solid var(--line);
+  transition: box-shadow var(--dur-2) ease;
 }
+/* страница прокручена — шапка «отрывается» от содержимого (класс ставит main.js) */
+.site-header.is-scrolled { box-shadow: var(--shadow-1); }
 .site-header__inner {
   display: flex;
   align-items: center;
@@ -698,6 +709,8 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
     border-bottom: 1px solid var(--line);
   }
   .js .site-nav__list a::after { display: none; }
+  /* текущий ход в раскрытом мобильном меню */
+  .js .site-nav__list a[aria-current="true"] { box-shadow: inset 4px 0 0 var(--accent); padding-left: var(--space-4); }
   .js .site-nav__cta { display: inline-flex; min-height: 54px; font-size: var(--step-0); }
 }
 @media (min-width: 64em) {
@@ -748,10 +761,13 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
   stroke-dasharray: 0.3 0.22;
   stroke-linejoin: round;
 }
+.queen-layer__trail { stroke-width: 0.2; stroke-dasharray: calc(var(--trail) * 1px) 2px; stroke-linecap: butt; }
 .queen-layer__token {
   position: absolute;
-  left: calc((var(--q-file) - 1) * var(--sq) + var(--sq) / 2 - 11px);
-  top: calc((8 - var(--q-rank)) * var(--sq) + var(--sq) / 2 - 13px);
+  /* стоит на a1, на нужную клетку переносится сдвигом (без пересчёта раскладки) */
+  left: calc(var(--sq) / 2 - 11px);
+  top: calc(var(--sq) * 7.5 - 13px);
+  translate: calc((var(--q-file) - 1) * var(--sq)) calc((1 - var(--q-rank)) * var(--sq));
   width: 22px;
   height: 22px;
   display: grid;
@@ -760,7 +776,6 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
   background: var(--accent);
   color: var(--on-accent);
   box-shadow: 0 2px 0 var(--btn-edge), 0 0 0 2px var(--bg);
-  transition: left var(--dur-3) var(--ease-move), top var(--dur-3) var(--ease-move);
 }
 .queen-layer__token svg { width: 15px; height: 15px; fill: currentColor; }
 .queen-layer__label {
@@ -774,6 +789,77 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
   white-space: nowrap;
 }
 .queen-layer__label b { color: var(--fg); }
+
+/* Полоса ходов (уже 1440 px): вдоль правого края, внутри поля страницы (--gutter ≥ 16 px),
+   поэтому не заходит на текст и элементы управления. Только с JS. */
+.move-rail { display: none; }
+@media (max-width: 89.99em) {
+  .js-ready .move-rail {
+    --rt: 12px;   /* размер фишки */
+    --rk: 6px;    /* размер отметки хода */
+    position: fixed;
+    z-index: var(--z-queen);
+    top: calc(var(--header-h) + 1.5rem);
+    bottom: 1.5rem;
+    right: 2px;
+    width: var(--rt);
+    display: block;
+    pointer-events: none;
+  }
+}
+@media (min-width: 48em) and (max-width: 89.99em) {
+  .js-ready .move-rail { --rt: 18px; --rk: 8px; right: 4px; }
+}
+@media (min-width: 64em) and (max-width: 89.99em) {
+  .js-ready .move-rail { --rt: 22px; right: 6px; }
+}
+.move-rail__track {
+  position: absolute;
+  top: calc(var(--rt) / 2);
+  bottom: calc(var(--rt) / 2);
+  left: calc(50% - 1px);
+  width: 2px;
+  background: color-mix(in oklch, var(--accent) 32%, transparent);
+}
+.move-rail__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform-origin: 50% 0;
+  scale: 1 calc(var(--move) / 6);
+}
+.move-rail__ticks {
+  position: absolute;
+  inset: calc((var(--rt) - var(--rk)) / 2) 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+.move-rail__ticks i {
+  width: var(--rk);
+  height: var(--rk);
+  border: 1.5px solid var(--accent);
+  background: var(--bg);
+  rotate: 45deg;
+}
+.move-rail__ticks i.is-on { background: var(--accent); }
+.move-rail__runner {
+  position: absolute;
+  inset: 0 0 var(--rt) 0;
+  translate: 0 calc(var(--move) / 6 * 100%);
+}
+.move-rail__token {
+  display: grid;
+  place-items: center;
+  width: var(--rt);
+  height: var(--rt);
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 0 0 2px var(--bg);
+}
+.move-rail__token svg { width: 72%; height: 72%; fill: currentColor; }
 
 /* ---------- 12. Первый экран ---------- */
 .hero {
@@ -866,6 +952,10 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
 .stage {
   position: relative;
   width: min(100%, 25rem);
+  /* прокрутка первого экрана: сцена чуть уходит вглубь и наклоняется (--hero-p 0…1) */
+  transform: perspective(900px) rotateX(calc(var(--hero-p) * 9deg));
+  scale: calc(1 - var(--hero-p) * 0.06);
+  transform-origin: 50% 70%;
 }
 .stage__glow {
   position: absolute;
@@ -873,6 +963,7 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
   border-radius: 50%;
   background: radial-gradient(closest-side, var(--glow), transparent);
   filter: blur(8px);
+  opacity: calc(1 - var(--hero-p) * 0.45);
 }
 .stage__art { position: relative; width: 100%; height: auto; overflow: visible; }
 .board__light { fill: var(--tile-light); }
@@ -899,6 +990,13 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
 .gs-1 { stop-color: #fff; stop-opacity: 0.5; }
 .gs-2 { stop-color: #fff; stop-opacity: 0.05; }
 .queen { transform-box: fill-box; }
+/* ферзь отрывается от доски и чуть клонится вперёд — «делает ход»; доска уходит вниз (параллакс слоёв) */
+.queen-rig {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: translateY(calc(var(--hero-p) * -16px)) rotate(calc(var(--hero-p) * -5deg));
+}
+.board { translate: 0 calc(var(--hero-p) * 7px); }
 @media (prefers-reduced-motion: no-preference) {
   .queen { animation: queen-float var(--dur-float) var(--ease-move) infinite; }
   .queen__shadow { animation: shadow-float var(--dur-float) var(--ease-move) infinite; transform-box: fill-box; transform-origin: center; }
@@ -1051,10 +1149,15 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
   line-height: 0.78;
   color: transparent;
   -webkit-text-stroke: 1.5px var(--brand);
-  background: linear-gradient(to top, var(--brand-tint) calc(var(--section-progress) * 100%), transparent 0);
+  /* латунная «линия уровня» поднимается сквозь цифру при прокрутке; при 1 (без JS) уходит выше глифа */
+  background: linear-gradient(to top, var(--brand-tint) calc(var(--section-progress) * 104% - 4%), var(--accent) 0 calc(var(--section-progress) * 104%), transparent 0);
   -webkit-background-clip: text;
   background-clip: text;
   user-select: none;
+  /* только уменьшение от своего угла — номер никогда не выходит за свою клетку сетки */
+  transform-origin: 0 100%;
+  scale: calc(0.86 + var(--section-progress) * 0.14);
+  opacity: calc(0.35 + var(--section-progress) * 0.65);
 }
 .move-head__body { min-width: 0; container-type: inline-size; }
 .move-head__tag {
@@ -1071,7 +1174,11 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
   background: conic-gradient(var(--accent) 25%, transparent 0 50%, var(--accent) 0 75%, transparent 0) 0 0 / 6px 6px;
   outline: 1.5px solid var(--accent);
   outline-offset: 1px;
+  /* только уменьшение: значок не выходит за свою клетку и не задевает текст рядом */
+  scale: calc(0.4 + var(--section-progress) * 0.6);
 }
+/* шахматная сетка фона раздела проявляется по мере его прихода */
+.section-move::before { opacity: calc(0.15 + var(--section-progress) * 0.85); }
 .move-head__title {
   margin-top: var(--space-2);
   font-size: var(--display-3);
@@ -1737,12 +1844,15 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
 
 /* ---------- 21. Движение и печать ---------- */
 @media (prefers-reduced-motion: reduce) {
+  /* не «0.01ms», а none: иначе любое изменение свойства всё равно запускает микропереход */
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation: none !important;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
+  /* статичная композиция: JS при reduced-motion эти переменные не трогает, здесь — страховка */
+  .stage, .queen-rig, .board, .move-head__num, .move-head__square { transform: none; translate: none; scale: none; rotate: none; }
+  .move-head__num, .section-move::before, .stage__glow { opacity: 1; }
 }
 /* Режим высокой контрастности (Windows): фоны принудительно сбрасываются —
    возвращаем то, что держалось только на background */
@@ -1754,7 +1864,7 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
   .move-head__num, .site-footer__word { color: CanvasText; -webkit-text-stroke: 0; }
 }
 @media print {
-  .site-header, .queen-layer, .hero__stage, .form, .copy-btn, .hero__word, .site-footer__word, .bot-cta { display: none !important; }
+  .site-header, .queen-layer, .move-rail, .hero__stage, .form, .copy-btn, .hero__word, .site-footer__word, .bot-cta { display: none !important; }
   .scope-wine { background: none !important; color: #000 !important; }
   body { background: #fff; color: #000; }
 }

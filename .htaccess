@@ -1,0 +1,16 @@
+# Apache: закрываем от HTTP служебные файлы. nginx этот файл не читает — см. send.config.example.php.
+# Настройки отправки формы (адрес почты, соль), примеры и внутренние заметки не должны отдаваться по HTTP.
+# Счётчики частоты send.php по умолчанию лежат во временной папке системы, вне сайта.
+# Папку .git на хостинг не выкладывайте: FilesMatch закрывает файлы по имени, а не папки.
+# error_log / *.log — журнал PHP, который многие хостинги кладут рядом со скриптом;
+# <64 hex>.json — счётчики частоты, если rate_dir указали внутри сайта (.send-rate/).
+<FilesMatch "^(send\.config(\.example)?\.php|.*\.md|_headers|\.gitignore|\.ht.*|\.DS_Store|error_log|.*\.log|[0-9a-f]{64}\.json)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+# Заголовки безопасности (CSP и др.) для Apache — этап 4; сейчас они описаны в _headers (Netlify / Cloudflare Pages).

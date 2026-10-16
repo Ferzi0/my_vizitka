@@ -3,3 +3,7 @@ node_modules/
 *.log
 .env
 *.local
+
+# настройки отправки формы — создаются на хостинге (пример: send.config.example.php)
+send.config.php
+.send-rate/

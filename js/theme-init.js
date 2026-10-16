@@ -11,7 +11,7 @@
     root.setAttribute('data-theme', saved);
   }
   // Страховка: если main.js не загрузился или не запустился (сбой сети, блокировщик),
-  // снимаем .js — иначе блоки .reveal остались бы невидимыми, а мобильное меню без кнопки.
+  // снимаем .js — иначе мобильное меню осталось бы без кнопки.
   window.addEventListener('load', function () {
     if (!root.classList.contains('js-ready')) root.classList.remove('js');
   });

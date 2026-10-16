@@ -37,6 +37,13 @@
   <link rel="stylesheet" href="css/main.css">
   <script src="js/theme-init.js"></script>
   <script src="js/main.js" defer></script>
+  <!-- Приватная аналитика без cookie: по умолчанию НЕ подключена, ничего внешнего не грузится.
+       Чтобы включить, раскомментируйте ОДНУ строку и поправьте CSP в _headers (см. ANALYTICS.md).
+       События (track в js/main.js) подхватятся автоматически.
+  <script defer data-domain="example.com" src="https://plausible.io/js/script.js"></script>
+  <script data-goatcounter="https://ИМЯ.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+  <script defer src="https://АДРЕС-UMAMI/script.js" data-website-id="ИДЕНТИФИКАТОР"></script>
+  -->
 
   <script type="application/ld+json">
   {
@@ -94,16 +101,23 @@
     </symbol>
   </svg>
 
-  <!-- Слой «идущего ферзя» (этап JS двигает его по --progress; без JS стоит на d1).
-       Видим только на широких экранах, в поле справа от контента: не перекрывает текст и формы. -->
+  <!-- Слой «идущего ферзя»: main.js ведёт его по клеткам разделов (data-square) вместе с прокруткой.
+       ≥ 1440 px — мини-доска в поле справа от контента; уже — тонкая полоса ходов вдоль правого края
+       (в пределах поля страницы). Ни то, ни другое не перекрывает текст и формы; без JS полосы нет, доска стоит на d1. -->
   <div class="queen-layer" aria-hidden="true">
     <div class="queen-layer__board">
       <svg class="queen-layer__path" viewBox="0 0 8 8" focusable="false">
         <polyline points="3.5,7.5 3.5,4.5 6.5,1.5 6.5,5.5 2.5,1.5 2.5,6.5 7.5,1.5"/>
+        <polyline class="queen-layer__trail" pathLength="1" points="3.5,7.5 3.5,4.5 6.5,1.5 6.5,5.5 2.5,1.5 2.5,6.5 7.5,1.5"/>
       </svg>
       <span class="queen-layer__token"><svg viewBox="0 0 64 64" focusable="false"><use href="#pc-queen"/></svg></span>
     </div>
     <span class="queen-layer__label">Ход <b class="queen-layer__move">1</b>/7</span>
+  </div>
+  <div class="move-rail" aria-hidden="true">
+    <span class="move-rail__track"><span class="move-rail__fill"></span></span>
+    <span class="move-rail__ticks"><i class="is-on"></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="move-rail__runner"><span class="move-rail__token"><svg viewBox="0 0 64 64" focusable="false"><use href="#pc-queen"/></svg></span></span>
   </div>
 
   <header class="site-header" id="top">
@@ -209,6 +223,7 @@
 
               <!-- Ферзь: силуэт + объём градиентами -->
               <ellipse class="queen__shadow" cx="200" cy="338" rx="58" ry="14" filter="url(#f-blur)"/>
+              <g class="queen-rig"><!-- приподнимается и наклоняется при прокрутке первого экрана -->
               <g class="queen" transform="translate(115 79) scale(0.85)">
                 <path class="queen__body" d="M28 300C28 284 44 274 62 270h76c18 4 34 14 34 30 0 10-32 16-72 16s-72-6-72-16z"/>
                 <rect class="queen__ring" x="44" y="252" width="112" height="20" rx="10"/>
@@ -224,6 +239,7 @@
                 <circle class="queen__ball" cx="144" cy="44" r="7"/>
                 <path class="queen__band" d="M86 68c2-18 8-28 14-32 6 4 12 14 14 32z"/>
                 <circle class="queen__ball queen__ball--top" cx="100" cy="24" r="10"/>
+              </g>
               </g>
             </svg>
             <span class="stage__tag stage__tag--move"><b>1.</b> Фd1</span>
@@ -259,7 +275,7 @@
             <dd><span class="facts__num display">24</span> часа</dd>
           </div>
           <div class="facts__item">
-            <dt>В&nbsp;веб-разработке</dt>
+            <dt>В&nbsp;веб-раз&shy;работке</dt>
             <dd><span class="facts__num display">3</span> года</dd>
           </div>
         </dl>
@@ -341,7 +357,7 @@
           </li>
         </ul>
 
-        <div class="extras" id="prices">
+        <div class="extras">
           <h3 class="extras__title">Также делаю отдельно</h3>
           <ul class="extras__list" role="list">
             <li>Дизайн в&nbsp;Figma</li>
@@ -619,7 +635,9 @@
           </ol>
         </div>
 
-        <form class="form" id="brief-form" action="mailto:hello@example.com" method="post" enctype="text/plain" aria-labelledby="form-title">
+        <!-- С JS заявка уходит на data-endpoint (send.php, нужен PHP); если его нет или он не ответил — письмо через mailto:.
+             На хостинге без PHP атрибут data-endpoint можно удалить: тогда сразу mailto:, без лишнего запроса. -->
+        <form class="form" id="brief-form" action="mailto:hello@example.com" method="post" enctype="text/plain" data-endpoint="send.php" aria-labelledby="form-title">
           <h3 class="form__title" id="form-title">Заявка</h3>
           <p class="form__hint">Поля со&nbsp;звёздочкой обязательны.</p>
 
