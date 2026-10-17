@@ -1,0 +1,9 @@
+{
+  "name": "ferz-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Сайт-визитка Эдуарда Торгашова (Ferz): статический сайт, сервер нужен только для просмотра",
+  "scripts": {
+    "start": "npx --yes http-server@14.1.1 . -a 0.0.0.0 -p 8080 -c-1 --silent"
+  }
+}

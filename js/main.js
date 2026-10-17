@@ -5,7 +5,7 @@
 
   var root = document.documentElement;
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  var MAIL = 'hello@example.com'; // [ЗАПОЛНИТЬ: почта] — та же, что в разметке
+  var MAIL = 'eduardtorgasov894@gmail.com'; // [ЗАПОЛНИТЬ: почта] — та же, что в разметке
 
   function safe(name, fn) {
     try { fn(); } catch (err) {
