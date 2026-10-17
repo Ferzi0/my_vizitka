@@ -25,11 +25,12 @@
 </FilesMatch>
 
 # Папки, которых на хостинге быть не должно (если их всё же выложили — например, всю папку проекта
-# вместо пакета из tools/package.sh; dist/ и release/ — это сборки), и листинг каталогов:
+# вместо пакета из tools/package.sh; dist/ и release/ — это сборки; src-images/ — исходники скриншотов
+# работ, на сайт идут только сжатые копии из assets/works/), и листинг каталогов:
 # каталог без index.html (css/, js/, assets/…) отвечает 403 вместо списка файлов.
 # <If> есть только в Apache 2.4 — там же есть mod_authz_core, поэтому он служит проверкой версии.
 <IfModule mod_authz_core.c>
-  <If "%{REQUEST_URI} =~ m#/(\.git|\.svn|\.hg|\.send-rate|tools|node_modules|dist|release)(/|$)#i">
+  <If "%{REQUEST_URI} =~ m#/(\.git|\.svn|\.hg|\.send-rate|tools|node_modules|dist|release|src-images)(/|$)#i">
     Require all denied
   </If>
   <ElseIf "-d %{REQUEST_FILENAME} && ! -f '%{REQUEST_FILENAME}/index.html'">
@@ -41,6 +42,8 @@
 <IfModule mod_mime.c>
   AddType font/woff2 .woff2
   AddType image/svg+xml .svg
+  AddType image/avif .avif
+  AddType image/webp .webp
   AddType text/javascript .js
   AddType application/xml .xml
   AddCharset utf-8 .html .css .js .svg .xml .txt
@@ -77,14 +80,14 @@ AddDefaultCharset utf-8
   # (no-cache = «можно хранить, но перед показом спросить сервер»; ответ 304 почти ничего не весит):
   # после выкладки новой версии посетитель сразу получает новые стили и скрипты.
   # Шрифты меняются только вместе с новым именем файла — кэш на год.
-  # Картинки (favicon, og-image) — неделя.
+  # Картинки (favicon, og-image, скриншоты работ) — неделя.
   <FilesMatch "\.(html|css|js|xml|txt|json)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
   <FilesMatch "\.woff2$">
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
-  <FilesMatch "\.(png|svg|webp|jpe?g|ico)$">
+  <FilesMatch "\.(png|svg|webp|avif|jpe?g|ico)$">
     Header set Cache-Control "public, max-age=604800"
   </FilesMatch>
 

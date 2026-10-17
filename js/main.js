@@ -1,5 +1,6 @@
 /* Ferz — взаимодействия страницы. Без зависимостей; ошибка в одном модуле не ломает остальные.
-   Тема, меню, прогрессия «ход ферзя», копирование, форма (send.php → mailto:), аналитика track(). */
+   Тема, меню, прогрессия «ход ферзя», кнопка «Наверх», слайдер скриншотов, появление блоков,
+   копирование, форма (send.php → mailto:), аналитика track(). */
 (function () {
   'use strict';
 
@@ -138,10 +139,47 @@
     onViewport();
   }
 
+  /* ---------- Общий цикл прокрутки ----------
+     Один rAF на кадр и один passive-обработчик scroll на всю страницу. Модули регистрируют
+     { measure, frame }: measure читает раскладку (только после resize / ResizeObserver — один раз
+     в начале ближайшего кадра, сколько бы событий ни пришло), frame(y) только пишет (CSS-переменные,
+     классы) и раскладку не читает — без layout thrash. */
+  var loop = (function () {
+    var parts = [], queued = false, dirty = true, bound = false;
+    function frame() {
+      queued = false;
+      var i;
+      if (dirty) { dirty = false; for (i = 0; i < parts.length; i++) if (parts[i].measure) run(parts[i], 'measure'); }
+      var y = window.scrollY;
+      for (i = 0; i < parts.length; i++) run(parts[i], 'frame', y);
+    }
+    // ошибка одного модуля не останавливает остальные
+    function run(part, fn, y) {
+      try { part[fn](y); } catch (err) { if (window.console && console.debug) console.debug('[loop]', err); }
+    }
+    function queue() { if (!queued) { queued = true; window.requestAnimationFrame(frame); } }
+    function invalidate() { dirty = true; queue(); }
+    function bind() {
+      if (bound) return;
+      bound = true;
+      window.addEventListener('scroll', queue, { passive: true });
+      window.addEventListener('resize', invalidate, { passive: true });
+      if ('ResizeObserver' in window) new ResizeObserver(invalidate).observe(document.body); // шрифты, FAQ, зум
+    }
+    return {
+      // run: сразу посчитать кадр (до первой отрисовки — разделы на первом экране не «мигают»)
+      add: function (part, run) { parts.push(part); bind(); dirty = true; if (run) frame(); else queue(); },
+      invalidate: invalidate
+    };
+  })();
+
   /* ---------- Прогрессия «ход ферзя» ----------
-     Разделы .section-move = ходы 1…7 с клетками data-square. Один rAF на прокрутку (passive):
-     в кадре читается только scrollY (координаты — из кеша measure), пишутся только CSS-переменные
-     и только при изменении. reduced-motion: ход меняется ступенькой, без движения. */
+     Разделы .section-move = ходы 1…7 с клетками data-square. В кадре читается только scrollY
+     (координаты — из кеша measure), пишутся только CSS-переменные и только при изменении.
+     Полоска в шапке и полоса ходов (< 1440 px) — непрерывные: доля реальной прокрутки
+     scrollY / (scrollHeight − innerHeight), отметки разделов стоят там, где разделы приходят.
+     Мини-доска (≥ 1440 px) — ход ферзя по клеткам, как раньше. reduced-motion: ферзь на доске
+     меняет клетку ступенькой, полоски по-прежнему следуют за прокруткой (без анимаций). */
   function initProgress() {
     var secs = Array.prototype.slice.call(document.querySelectorAll('.section-move[data-move]'));
     if (secs.length < 2) return;
@@ -150,8 +188,10 @@
     var bar = document.querySelector('.site-header__progress') || root;
     var layer = document.querySelector('.queen-layer') || root;
     var rail = document.querySelector('.move-rail') || root;
-    var moveLabel = document.querySelector('.queen-layer__move');
-    var ticks = document.querySelectorAll('.move-rail__ticks i');
+    // Наводящие надписи раздела (data-hint): у мини-доски и в шапке вместо имени (< 1440 px)
+    var hints = Array.prototype.slice.call(document.querySelectorAll('.move-hint'));
+    var hintText = secs.map(function (s) { return s.getAttribute('data-hint') || ''; });
+    var ticks = Array.prototype.slice.call(document.querySelectorAll('.move-rail__ticks i'));
     var links = {};
     Array.prototype.forEach.call(document.querySelectorAll('.site-nav__list a[href^="#"]'), function (a) {
       links[a.getAttribute('href').slice(1)] = a;
@@ -169,14 +209,14 @@
     var total = cum[cum.length - 1] || 1;
     var last = secs.length - 1;
 
-    var tops = [], vh = 1, maxY = 1, heroH = 1;
+    var tops = [], marks = [], vh = 1, maxY = 1, heroH = 1;
     var written = new Map();
-    var active = -1, scrolled = null, queued = false, dirty = true, still = reduceMotion.matches;
+    var active = -1, lit = -1, scrolled = null, still = reduceMotion.matches;
 
     function put(el, prop, value) {
       var map = written.get(el);
       if (!map) { map = {}; written.set(el, map); }
-      var v = Math.round(value * 1000) / 1000;
+      var v = Math.round(value * 10000) / 10000;
       if (map[prop] === v) return;
       map[prop] = v;
       el.style.setProperty(prop, String(v));
@@ -188,28 +228,35 @@
     function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
     function ease(t) { return t * t * (3 - 2 * t); }
 
-    // Координаты разделов перечитываются не в обработчике события, а в начале ближайшего кадра —
-    // один раз, сколько бы resize / ResizeObserver ни пришло (иначе при перетаскивании окна —
-    // принудительная раскладка на каждое событие).
+    var HYST = 0.65;
+    // Смена надписи: короткий подъём с проявлением (Web Animations — без перечитывания раскладки);
+    // при reduced-motion и в первый раз — сразу. Только textContent.
+    function setHint(text, animate) {
+      hints.forEach(function (el) {
+        el.textContent = text;
+        if (animate && !reduceMotion.matches && el.animate) {
+          el.animate([{ opacity: 0, transform: 'translateY(0.35em)' }, { opacity: 1, transform: 'none' }],
+            { duration: 320, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
+        }
+      });
+    }
+
     function measure() {
       var y = window.scrollY;
       tops = secs.map(function (s) { return s.getBoundingClientRect().top + y; });
       vh = window.innerHeight || 1;
       maxY = Math.max(1, document.documentElement.scrollHeight - vh);
       heroH = secs[0].offsetHeight || vh;
-    }
-    function invalidate() { dirty = true; queue(); }
-    function queue() {
-      if (!queued) { queued = true; window.requestAnimationFrame(frame); }
+      // Отметка раздела на полосе — доля прокрутки, при которой верх раздела доходит до середины экрана
+      // (там же переключается ход); монотонно, последняя не дальше конца полосы
+      marks = tops.map(function (t, n) { return n === 0 ? 0 : clamp((t - vh * 0.5) / maxY); });
+      for (var n = 1; n < marks.length; n++) if (marks[n] < marks[n - 1]) marks[n] = marks[n - 1];
     }
 
-    function frame() {
-      queued = false;
-      if (dirty) { dirty = false; measure(); }
-      var y = window.scrollY;
+    function frame(y) {
       var anchor = y + vh * 0.5;
 
-      // Номер хода 0…6: граница разделов «переводит» ферзя, проходя ±30 % экрана от середины
+      // Номер хода 0…6 (мини-доска): граница разделов «переводит» ферзя, проходя ±30 % экрана от середины
       var m = 0;
       for (var b = 1; b <= last; b++) m += ease(clamp((anchor - tops[b] + vh * 0.3) / (vh * 0.6)));
       if (y >= maxY - 2) m = last;
@@ -217,15 +264,23 @@
       var i = Math.min(Math.floor(m), last - 1), t = m - i;
       var from = squares[i], to = squares[i + 1];
 
-      put(bar, '--progress', still ? m / last : clamp(y / maxY));
-      put(rail, '--move', m);
+      // Полоски: непрерывно, пропорционально прокрутке
+      var p = y >= maxY - 1 ? 1 : clamp(y / maxY);
+      put(bar, '--progress', p);
+      put(rail, '--rail-p', p);
+      ticks.forEach(function (tick, n) { if (n < marks.length) put(tick, '--at', marks[n]); });
+      var on = 0;
+      for (var n = 1; n < marks.length; n++) if (p >= marks[n] - 0.0005) on = n;
+      if (on !== lit) {
+        lit = on;
+        ticks.forEach(function (tick, n) { tick.classList.toggle('is-on', n <= on); });
+      }
+
       put(layer, '--q-file', from.f + (to.f - from.f) * t);
       put(layer, '--q-rank', from.r + (to.r - from.r) * t);
       put(layer, '--trail', (cum[i] + (cum[i + 1] - cum[i]) * t) / total);
 
       // Считаются все разделы: у ушедших значение упирается в 0 или 1 и put() его не переписывает.
-      // (Раньше считались только видимые по IntersectionObserver — при прыжке по якорю пропущенные
-      // разделы оставались в старом состоянии и на кадр «мигали» при возврате.)
       if (!still) {
         put(secs[0], '--hero-p', clamp(y / (heroH * 0.85)));
         for (var s = 1; s <= last; s++) {
@@ -236,11 +291,13 @@
       var isScrolled = y > 8;
       if (header && isScrolled !== scrolled) { scrolled = isScrolled; header.classList.toggle('is-scrolled', isScrolled); }
 
+      // Текущий раздел с гистерезисом: меняется, только когда ход ушёл от прежнего дальше чем на 0,65
+      // (середина перехода — 0,5), — на границе при прокрутке туда-обратно надпись не дребезжит
       var now = Math.min(last, Math.floor(m + 0.5));
-      if (now !== active) {
+      if (now !== active && (active < 0 || Math.abs(m - active) >= HYST || y >= maxY - 2 || y <= 0)) {
+        var first = active < 0;
         active = now;
-        if (moveLabel) moveLabel.textContent = String(now + 1);
-        Array.prototype.forEach.call(ticks, function (tick, n) { tick.classList.toggle('is-on', n <= now); });
+        setHint(hintText[now], !first);
         Object.keys(links).forEach(function (id) {
           if (id === secs[now].id) links[id].setAttribute('aria-current', 'true');
           else links[id].removeAttribute('aria-current');
@@ -248,19 +305,241 @@
       }
     }
 
-    function setMode() {
+    onChange(reduceMotion, function () {
       still = reduceMotion.matches;
       if (still) {
         clear(secs[0], '--hero-p');
         secs.forEach(function (s) { clear(s, '--section-progress'); });
       }
-      invalidate();
+      loop.invalidate();
+    });
+    loop.add({ measure: measure, frame: frame }, true);
+  }
+
+  /* ---------- Кнопка «Наверх» ----------
+     Без JS её нет (hidden), наверх ведёт ссылка в подвале. Видна, когда первый экран прокручен;
+     прячется, если под ней оказались бы ссылки, кнопки, вопросы, форма или подвал (прямоугольники — из кеша measure).
+     Нажатие: плавно наверх (reduced-motion — сразу), фокус — в начало документа: следующий Tab
+     попадает на «Перейти к содержанию». */
+  // Наверх: плавно до scrollY = 0 (reduced-motion — сразу), фокус в начало документа — следующий Tab
+  // попадает на «Перейти к содержанию». Общая для круглой кнопки, логотипа и ссылки «Наверх ↑» в подвале.
+  function goTop() {
+    window.scrollTo({ top: 0, left: 0, behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+    var body = document.body;
+    body.setAttribute('tabindex', '-1');
+    body.addEventListener('blur', function off() {
+      body.removeAttribute('tabindex');
+      body.removeEventListener('blur', off);
+    });
+    body.focus({ preventScroll: true });
+  }
+  function initToTop() {
+    // Ссылки href="#top" (логотип, подвал): без JS — переход к фрагменту «top», которого нет на странице, —
+    // по стандарту HTML это верх документа. С JS — то же, что кнопка, без «#top» в адресе.
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest ? e.target.closest('a[href="#top"]') : null;
+      if (!a || e.defaultPrevented || e.button > 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      track('to_top');
+      goTop();
+    });
+    var btn = document.querySelector('.to-top');
+    if (!btn) return;
+    var hero = document.querySelector('.hero');
+    // Зоны, над которыми кнопки быть не должно: всё кликабельное ниже первого экрана (ссылки, кнопки,
+    // вопросы FAQ, контакты и форма, подвал). Проверка по горизонтали тоже — на широких экранах кнопка
+    // стоит в поле страницы и рядом с ними не прячется.
+    var avoid = Array.prototype.slice.call(document.querySelectorAll('.cta-band .btn, .work__more a, .faq__list, .contact__grid, .site-footer'));
+    var GAP = 12;
+    var heroEnd = 0, zones = [], bx = { top: 0, bottom: 0, left: 0, right: 0 }, shown = null;
+    btn.hidden = false;
+
+    function measure() {
+      var y = window.scrollY;
+      var headerH = 0, header = document.querySelector('.site-header');
+      if (header) headerH = header.offsetHeight;
+      heroEnd = (hero ? hero.getBoundingClientRect().bottom + y : window.innerHeight) - headerH;
+      // offsetTop/Left у position: fixed — от окна и без учёта translate (анимации появления)
+      bx = { top: btn.offsetTop, left: btn.offsetLeft, bottom: btn.offsetTop + btn.offsetHeight, right: btn.offsetLeft + btn.offsetWidth };
+      zones = avoid.map(function (el) {
+        var r = el.getBoundingClientRect();
+        return { top: r.top + y, bottom: r.bottom + y, left: r.left, right: r.right };
+      });
     }
-    onChange(reduceMotion, setMode);
-    window.addEventListener('scroll', queue, { passive: true });
-    window.addEventListener('resize', invalidate, { passive: true });
-    if ('ResizeObserver' in window) new ResizeObserver(invalidate).observe(document.body); // шрифты, FAQ, зум
-    frame(); // сразу, до первой отрисовки: разделы на первом экране не «мигают» из исходного состояния
+    function frame(y) {
+      var show = y > heroEnd;
+      for (var i = 0; show && i < zones.length; i++) {
+        var z = zones[i];
+        if (z.top - y < bx.bottom + GAP && z.bottom - y > bx.top - GAP && z.left < bx.right + GAP && z.right > bx.left - GAP) show = false;
+      }
+      if (show !== shown) { shown = show; btn.classList.toggle('is-shown', show); }
+    }
+
+    btn.addEventListener('click', function () {
+      track('to_top');
+      goTop();
+    });
+    loop.add({ measure: measure, frame: frame }, true);
+  }
+
+  /* ---------- Слайдер скриншотов ([data-slides]) ----------
+     Без элементов управления — так решил заказчик (STATUS.md, этап 6: осознанное отступление от WCAG 2.2.2).
+     Кадр меняется каждые 5 с, только пока карточка на экране и вкладка активна; без JS и при
+     reduced-motion — первый кадр. Неактивные кадры — aria-hidden, aria-live нет (смена не объявляется).
+     Кадры 2…n без класса .is-live не отображаются (display: none) и не загружаются. */
+  function initSlides() {
+    if (!('IntersectionObserver' in window)) return;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-slides]'), function (box) {
+      var slides = Array.prototype.slice.call(box.querySelectorAll('.slide'));
+      if (slides.length < 2) return;
+      var INTERVAL = 5000, RETRY = 400;
+      var cur = 0, timer = 0, visible = false;
+
+      function img(n) { return slides[n].querySelector('img'); }
+      function ready(n) { var im = img(n); return !!im && im.complete && im.naturalWidth > 0; }
+      function broken(n) { var im = img(n); return !im || (im.complete && !im.naturalWidth && !!im.currentSrc); }
+      function running() { return visible && !reduceMotion.matches && document.visibilityState === 'visible'; }
+      function stop() { if (timer) { clearTimeout(timer); timer = 0; } }
+      function schedule(delay) { stop(); if (running()) timer = setTimeout(tick, delay || INTERVAL); }
+
+      function show(next, animate) {
+        var prev = cur;
+        cur = next;
+        slides.forEach(function (s, n) {
+          s.classList.toggle('is-active', n === cur);
+          s.classList.toggle('is-prev', n === prev && n !== cur);
+          s.classList.toggle('is-entering', n === cur && !!animate);
+          if (n === cur) s.removeAttribute('aria-hidden');
+          else s.setAttribute('aria-hidden', 'true');
+        });
+      }
+      function tick() {
+        timer = 0;
+        if (!running()) return;
+        var next = (cur + 1) % slides.length;
+        // битый кадр (ошибка загрузки) пропускаем, иначе слайдер навсегда встал бы на текущем
+        for (var k = 0; k < slides.length - 1 && broken(next); k++) next = (next + 1) % slides.length;
+        if (next === cur || broken(next)) return;
+        if (!ready(next)) {
+          // кадр ещё грузится — подождать его, а не показывать пустую рамку
+          var im = img(next);
+          if (im && im.loading === 'lazy') im.loading = 'eager';
+          schedule(RETRY);
+          return;
+        }
+        show(next, true);
+        schedule();
+      }
+      function setMode() {
+        if (reduceMotion.matches) {
+          stop();
+          show(0, false);
+          box.classList.remove('is-live');
+        } else {
+          box.classList.add('is-live');
+          schedule();
+        }
+      }
+
+      new IntersectionObserver(function (entries) {
+        var e = entries[entries.length - 1];
+        var now = e.isIntersecting && e.intersectionRatio >= 0.35;
+        if (now === visible) return;
+        visible = now;
+        if (visible) schedule(); else stop();
+      }, { threshold: [0, 0.35, 0.6] }).observe(box);
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') schedule(); else stop();
+      });
+      onChange(reduceMotion, setMode);
+      setMode();
+    });
+  }
+
+  /* ---------- Появление блоков при прокрутке ----------
+     Скрываются (класс .rv) только блоки, которые целиком ниже экрана в момент «взвода» — после load,
+     когда браузер уже прокрутил к якорю или восстановил позицию. Поэтому видимое при загрузке
+     не мигает, а при сбое main.js или reduced-motion скрытых блоков нет вообще. Появляются один раз:
+     IntersectionObserver → .rv-in (анимация opacity + translate, своя задержка у блоков одной «пачки»),
+     после анимации классы снимаются. Свойство translate не спорит с transform у :hover карточек. */
+  var REVEAL = '.move-head__body, .card, .extras, .cta-band, .step, .case, .work__more, .principle, .stack__tile, .qa, .contact__title, .contact__lead, .direct, .bot-cta, .next, .form';
+  function initReveal() {
+    if (!('IntersectionObserver' in window)) return;
+    var els = Array.prototype.slice.call(document.querySelectorAll(REVEAL));
+    if (!els.length) return;
+    var io = null, STEP = 90, MAX_STEPS = 5;
+
+    function done(e) {
+      var el = e.target;
+      if (e.animationName !== 'rv-up') return;
+      el.classList.remove('rv-in');
+      el.style.removeProperty('--rv-d');
+      el.removeEventListener('animationend', done);
+    }
+    function reveal(el, n) {
+      if (n) el.style.setProperty('--rv-d', Math.min(n, MAX_STEPS) * STEP + 'ms');
+      el.addEventListener('animationend', done);
+      el.classList.add('rv-in');
+      el.classList.remove('rv');
+    }
+    function arm() {
+      if (io || reduceMotion.matches) return;
+      var vh = window.innerHeight;
+      // сначала все чтения, потом записи
+      var below = els.filter(function (el) { return el.getBoundingClientRect().top > vh; });
+      if (!below.length) return;
+      io = new IntersectionObserver(function (entries) {
+        var n = 0;
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          io.unobserve(e.target);
+          reveal(e.target, n++);
+        });
+      }, { rootMargin: '0px 0px -8% 0px' });
+      below.forEach(function (el) { el.classList.add('rv'); io.observe(el); });
+    }
+    function disarm() {
+      if (!io) return;
+      io.disconnect();
+      io = null;
+      els.forEach(function (el) { el.classList.remove('rv', 'rv-in'); el.style.removeProperty('--rv-d'); });
+    }
+    onChange(reduceMotion, function () { if (reduceMotion.matches) disarm(); });
+    window.addEventListener('beforeprint', disarm);
+    // Фокус с клавиатуры (Tab, переход к полю) внутри ещё не проявившегося блока — проявить сразу:
+    // при прокрутке к фокусу блок может встать в нижние 8 % экрана, куда наблюдатель не смотрит
+    document.addEventListener('focusin', function (e) {
+      if (!io) return;
+      var el = e.target.closest ? e.target.closest('.rv') : null;
+      if (el) { io.unobserve(el); reveal(el, 0); }
+    });
+    // Переход по ссылке-якорю: блоки целевого раздела начинают появляться сразу, пока идёт плавная
+    // прокрутка, — к её концу они уже на месте, а не проявляются на глазах после «приземления».
+    document.addEventListener('click', function (e) {
+      if (!io) return;
+      var a = e.target.closest ? e.target.closest('a[href^="#"]') : null;
+      var target = a && a.getAttribute('href').length > 1 ? document.getElementById(a.getAttribute('href').slice(1)) : null;
+      if (!target) return;
+      var n = 0;
+      Array.prototype.forEach.call(target.querySelectorAll('.rv'), function (el) { io.unobserve(el); reveal(el, n++); });
+    });
+    function later() { window.requestAnimationFrame(function () { window.requestAnimationFrame(arm); }); }
+    // Открыли адрес с #якорем: браузер плавно едет к разделу уже после load — «взводим» после
+    // остановки прокрутки, иначе раздел, к которому приехали, проявлялся бы на глазах
+    function afterScroll(fn) {
+      var t = 0;
+      function finish() { window.removeEventListener('scroll', on); fn(); }
+      function on() { clearTimeout(t); t = setTimeout(finish, 200); }
+      window.addEventListener('scroll', on, { passive: true });
+      t = setTimeout(finish, 450);
+    }
+    function start() {
+      var id = window.location.hash.slice(1), target = null;
+      try { target = id && document.getElementById(decodeURIComponent(id)); } catch (err) { target = null; }
+      if (target) afterScroll(later); else later();
+    }
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start);
   }
 
   /* ---------- Копирование адреса ---------- */
@@ -564,6 +843,9 @@
     safe('theme', initTheme);
     safe('nav', initNav);
     safe('progress', initProgress);
+    safe('to-top', initToTop);
+    safe('slides', initSlides);
+    safe('reveal', initReveal);
     safe('copy', initCopy);
     safe('form', initForm);
     safe('track', initTrackLinks);

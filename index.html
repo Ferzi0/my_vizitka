@@ -119,7 +119,8 @@
       </svg>
       <span class="queen-layer__token"><svg viewBox="0 0 64 64" focusable="false"><use href="#pc-queen"/></svg></span>
     </div>
-    <span class="queen-layer__label">Ход <b class="queen-layer__move">1</b>/7</span>
+    <!-- Наводящая надпись раздела (data-hint у .section-move), пишет main.js; без JS скрыта -->
+    <span class="queen-layer__label"><span class="move-hint"></span></span>
   </div>
   <div class="move-rail" aria-hidden="true">
     <span class="move-rail__track"><span class="move-rail__fill"></span></span>
@@ -127,13 +128,19 @@
     <span class="move-rail__runner"><span class="move-rail__token"><svg viewBox="0 0 64 64" focusable="false"><use href="#pc-queen"/></svg></span></span>
   </div>
 
-  <header class="site-header" id="top">
+  <!-- id="top" здесь не ставить: шапка sticky, и переход к ней сдвигал страницу лишь на высоту шапки.
+       Фрагмент #top без элемента по стандарту HTML = верх документа (логотип, «Наверх ↑» в подвале). -->
+  <header class="site-header">
     <div class="site-header__inner wrap">
       <a class="brand" href="#top" aria-label="Ferz, Эдуард Торгашов — в начало страницы">
         <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 64 64" width="26" height="26" focusable="false"><use href="#pc-queen"/></svg></span>
         <span class="brand__text">
           <span class="brand__nick" lang="en">Ferz</span>
-          <span class="brand__name">Эдуард Торгашов</span>
+          <span class="brand__sub">
+            <span class="brand__name">Эдуард Торгашов</span>
+            <!-- < 1440 px с JS здесь вместо имени — наводящая надпись текущего раздела (декоративная) -->
+            <span class="brand__hint move-hint" aria-hidden="true"></span>
+          </span>
         </span>
       </a>
 
@@ -167,7 +174,7 @@
   <main id="main" tabindex="-1">
 
     <!-- ============ ХОД 1 · ПЕРВЫЙ ЭКРАН ============ -->
-    <section class="hero section-move" id="hero" data-move="1" data-square="d1" aria-labelledby="hero-title">
+    <section class="hero section-move" id="hero" data-move="1" data-square="d1" data-hint="Кто это?" aria-labelledby="hero-title">
       <span class="hero__word" aria-hidden="true" lang="en">Ferz</span>
       <div class="wrap hero__grid">
         <div class="hero__copy">
@@ -249,7 +256,6 @@
               </g>
               </g>
             </svg>
-            <span class="stage__tag stage__tag--move"><b>1.</b> Фd1</span>
           </div>
 
           <!-- Место под фото автора. Чтобы вставить фото: положите файл в assets/ и добавьте внутрь .portrait__frame
@@ -290,12 +296,11 @@
     </section>
 
     <!-- ============ ХОД 2 · УСЛУГИ И ЦЕНЫ ============ -->
-    <section class="section section-move services" id="services" data-move="2" data-square="d4" aria-labelledby="services-title">
+    <section class="section section-move services" id="services" data-move="2" data-square="d4" data-hint="А сколько стоит?" aria-labelledby="services-title">
       <div class="wrap">
         <header class="move-head">
           <span class="move-head__num display" aria-hidden="true">02</span>
           <div class="move-head__body">
-            <p class="move-head__tag"><span class="move-head__square" aria-hidden="true"></span>Ход 2 · Фd1–d4</p>
             <h2 class="move-head__title display" id="services-title">Услуги и&nbsp;цены</h2>
             <p class="move-head__lead">Пять форматов — от&nbsp;первого шага в&nbsp;интернете до&nbsp;сервиса с&nbsp;личными кабинетами. Цены «от»: точная сумма зависит от&nbsp;объёма и&nbsp;называется до&nbsp;начала работы.</p>
           </div>
@@ -384,12 +389,11 @@
     </section>
 
     <!-- ============ ХОД 3 · КАК РАБОТАЮ ============ -->
-    <section class="section section-move process scope-wine" id="process" data-move="3" data-square="g7" aria-labelledby="process-title">
+    <section class="section section-move process scope-wine" id="process" data-move="3" data-square="g7" data-hint="Как это будет?" aria-labelledby="process-title">
       <div class="wrap">
         <header class="move-head">
           <span class="move-head__num display" aria-hidden="true">03</span>
           <div class="move-head__body">
-            <p class="move-head__tag"><span class="move-head__square" aria-hidden="true"></span>Ход 3 · Фd4–g7</p>
             <h2 class="move-head__title display" id="process-title">Как работаю</h2>
             <p class="move-head__lead">Четыре хода от&nbsp;заявки до&nbsp;запуска. На&nbsp;каждом вы&nbsp;знаете, что получите.</p>
           </div>
@@ -425,12 +429,11 @@
     </section>
 
     <!-- ============ ХОД 4 · РАБОТЫ ============ -->
-    <section class="section section-move work" id="work" data-move="4" data-square="g3" aria-labelledby="work-title">
+    <section class="section section-move work" id="work" data-move="4" data-square="g3" data-hint="А что уже сделано?" aria-labelledby="work-title">
       <div class="wrap">
         <header class="move-head">
           <span class="move-head__num display" aria-hidden="true">04</span>
           <div class="move-head__body">
-            <p class="move-head__tag"><span class="move-head__square" aria-hidden="true"></span>Ход 4 · Фg7–g3</p>
             <h2 class="move-head__title display" id="work-title">Работы</h2>
             <p class="move-head__lead">Честно: клиентских кейсов здесь пока нет. Ниже — учебный, дипломный и&nbsp;собственный проекты. Показываю, что умею делать руками.</p>
           </div>
@@ -466,23 +469,30 @@
           </article>
 
           <article class="case" aria-labelledby="case-2-title">
-            <div class="case__shot shot shot--travel" aria-hidden="true">
+            <!-- Скриншоты: исходники в src-images/ai-travel/, пересборка — sh tools/images.sh (README, «Скриншоты работ»).
+                 Без JS и при reduced-motion виден первый кадр; с JS кадры сменяются каждые 5 с, пока карточка на экране. -->
+            <div class="case__shot shot shot--slides" data-slides>
               <div class="shot__frame">
-                <div class="tv-tree">
-                  <span class="tv-node tv-node--root">Поездка</span>
-                  <span class="tv-node">Даты</span><span class="tv-node is-on">Бюджет</span><span class="tv-node">Отдых</span>
-                </div>
-                <div class="tv-calc">
-                  <span class="tv-line"><i></i><b></b></span>
-                  <span class="tv-line"><i></i><b></b></span>
-                  <span class="tv-line tv-line--sum"><i>Примерно</i><b>₽</b></span>
-                </div>
-                <span class="tv-api">Билеты · API</span>
+                <picture class="slide is-active">
+                  <source type="image/avif" srcset="assets/works/ai-travel/01-800.avif 800w, assets/works/ai-travel/01-1600.avif 1600w" sizes="(min-width: 64em) 340px, 84vw">
+                  <source type="image/webp" srcset="assets/works/ai-travel/01-800.webp 800w, assets/works/ai-travel/01-1600.webp 1600w" sizes="(min-width: 64em) 340px, 84vw">
+                  <img class="slide__img" src="assets/works/ai-travel/01-800.jpg" srcset="assets/works/ai-travel/01-800.jpg 800w, assets/works/ai-travel/01-1600.jpg 1600w" sizes="(min-width: 64em) 340px, 84vw" width="1600" height="800" loading="lazy" decoding="async" alt="Скриншот AI Traveler: главная страница с поиском направлений и параметрами поездки — откуда, даты туда и обратно, число пассажиров">
+                </picture>
+                <picture class="slide" aria-hidden="true">
+                  <source type="image/avif" srcset="assets/works/ai-travel/02-800.avif 800w, assets/works/ai-travel/02-1600.avif 1600w" sizes="(min-width: 64em) 340px, 84vw">
+                  <source type="image/webp" srcset="assets/works/ai-travel/02-800.webp 800w, assets/works/ai-travel/02-1600.webp 1600w" sizes="(min-width: 64em) 340px, 84vw">
+                  <img class="slide__img" src="assets/works/ai-travel/02-800.jpg" srcset="assets/works/ai-travel/02-800.jpg 800w, assets/works/ai-travel/02-1600.jpg 1600w" sizes="(min-width: 64em) 340px, 84vw" width="1600" height="836" loading="lazy" decoding="async" alt="Скриншот AI Traveler: популярные направления и актуальные цены на перелёты из Aviasales">
+                </picture>
+                <picture class="slide" aria-hidden="true">
+                  <source type="image/avif" srcset="assets/works/ai-travel/03-800.avif 800w, assets/works/ai-travel/03-1600.avif 1600w" sizes="(min-width: 64em) 340px, 84vw">
+                  <source type="image/webp" srcset="assets/works/ai-travel/03-800.webp 800w, assets/works/ai-travel/03-1600.webp 1600w" sizes="(min-width: 64em) 340px, 84vw">
+                  <img class="slide__img" src="assets/works/ai-travel/03-800.jpg" srcset="assets/works/ai-travel/03-800.jpg 800w, assets/works/ai-travel/03-1600.jpg 1600w" sizes="(min-width: 64em) 340px, 84vw" width="1600" height="829" loading="lazy" decoding="async" alt="Скриншот AI Traveler: сборка поездки деревом — отель, номер, рейс, багаж, условия возврата и примерная сумма">
+                </picture>
               </div>
             </div>
             <div class="case__body">
               <p class="case__tags"><span class="tag tag--honest">Дипломный проект</span><span class="tag">Веб-сервис</span></p>
-              <h3 class="case__title" id="case-2-title"><span lang="en">AI Travel</span> — планировщик путешествий</h3>
+              <h3 class="case__title" id="case-2-title"><span lang="en">AI Traveler</span> — планировщик путешествий</h3>
               <dl class="case__facts">
                 <div><dt>Задача</dt><dd>Помочь спланировать поездку и&nbsp;заранее понять, во&nbsp;что она примерно обойдётся.</dd></div>
                 <div><dt>Что сделано</dt><dd>Дерево выбора параметров путешествия, встроенный калькулятор примерной стоимости с&nbsp;билетами; данные о&nbsp;билетах — из&nbsp;API Авиасейлс.</dd></div>
@@ -514,12 +524,11 @@
     </section>
 
     <!-- ============ ХОД 5 · СТЕК И ПОДХОД ============ -->
-    <section class="section section-move approach" id="approach" data-move="5" data-square="c7" aria-labelledby="approach-title">
+    <section class="section section-move approach" id="approach" data-move="5" data-square="c7" data-hint="На чём делаете?" aria-labelledby="approach-title">
       <div class="wrap approach__grid">
         <header class="move-head">
           <span class="move-head__num display" aria-hidden="true">05</span>
           <div class="move-head__body">
-            <p class="move-head__tag"><span class="move-head__square" aria-hidden="true"></span>Ход 5 · Фg3–c7</p>
             <h2 class="move-head__title display" id="approach-title">Стек и&nbsp;подход</h2>
             <p class="move-head__lead">Технологии подбираю под задачу, а&nbsp;не&nbsp;задачу под технологии.</p>
           </div>
@@ -556,12 +565,11 @@
     </section>
 
     <!-- ============ ХОД 6 · ВОПРОСЫ ============ -->
-    <section class="section section-move faq" id="faq" data-move="6" data-square="c2" aria-labelledby="faq-title">
+    <section class="section section-move faq" id="faq" data-move="6" data-square="c2" data-hint="А если…?" aria-labelledby="faq-title">
       <div class="wrap faq__grid">
         <header class="move-head">
           <span class="move-head__num display" aria-hidden="true">06</span>
           <div class="move-head__body">
-            <p class="move-head__tag"><span class="move-head__square" aria-hidden="true"></span>Ход 6 · Фc7–c2</p>
             <h2 class="move-head__title display" id="faq-title">Вопросы</h2>
             <p class="move-head__lead">Если вашего вопроса нет — задайте его в&nbsp;заявке.</p>
           </div>
@@ -598,17 +606,16 @@
           </details>
           <details class="qa">
             <summary class="qa__q">Кому принадлежат права на&nbsp;код и&nbsp;дизайн?</summary>
-            <div class="qa__a"><p><span class="todo">Права на код и дизайн сайта полностью принадлежат Вам. Я же в свою очередь распоряжаюсь ими по согласованию.</span></p></div>
+            <div class="qa__a"><p>Права на код и дизайн сайта полностью принадлежат Вам. Я же в свою очередь распоряжаюсь ими по согласованию.</p></div>
           </details>
         </div>
       </div>
     </section>
 
     <!-- ============ ХОД 7 · КОНТАКТ ============ -->
-    <section class="section section-move contact" id="contact" data-move="7" data-square="h7" aria-labelledby="contact-title">
+    <section class="section section-move contact" id="contact" data-move="7" data-square="h7" data-hint="Ну что, начнём?" aria-labelledby="contact-title">
       <div class="wrap contact__grid">
         <div class="contact__intro">
-          <p class="move-head__tag"><span class="move-head__square" aria-hidden="true"></span>Ход 7 · Фc2–h7</p>
           <h2 class="contact__title display" id="contact-title">Ваш ход</h2>
           <p class="contact__lead">Расскажите о&nbsp;задаче — отвечу <strong>в&nbsp;течение суток</strong>. Можно формой, письмом или&nbsp;в&nbsp;Telegram.</p>
 
@@ -642,7 +649,7 @@
 
         <!-- С JS заявка уходит на data-endpoint (send.php, нужен PHP); если его нет или он не ответил — письмо через mailto:.
              На хостинге без PHP атрибут data-endpoint можно удалить: тогда сразу mailto:, без лишнего запроса. -->
-        <form class="form" id="brief-form" action="mailto:hello@example.com" method="post" enctype="text/plain" data-endpoint="send.php" aria-labelledby="form-title">
+        <form class="form" id="brief-form" action="mailto:eduardtorgasov894@gmail.com" method="post" enctype="text/plain" data-endpoint="send.php" aria-labelledby="form-title">
           <h3 class="form__title" id="form-title">Заявка</h3>
           <p class="form__hint">Поля со&nbsp;звёздочкой обязательны.</p>
 
@@ -713,5 +720,11 @@
     </div>
     <span class="site-footer__word display" aria-hidden="true" lang="en">Ferz</span>
   </footer>
+
+  <!-- Кнопка «Наверх»: только с JS (main.js, initToTop) — появляется ниже первого экрана и прячется,
+       когда под ней оказалась бы форма или подвал. Без JS — ссылка «Наверх ↑» в подвале. -->
+  <button class="to-top" type="button" aria-label="Наверх" hidden>
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M12 5.5 5.5 12M12 5.5 18.5 12M12 5.5V19"/></svg>
+  </button>
 </body>
 </html>
