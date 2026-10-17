@@ -46,3 +46,12 @@
   color: var(--fg-muted);
 }
 .legal + .site-footer { padding-block: var(--space-7) var(--space-4); }
+
+/* Крупный шрифт браузера на узком экране (см. блок 20a в main.css): заголовок не шире колонки,
+   в шапке остаётся знак ферзя (у ссылки есть aria-label) и кнопка «На главную» — в один ряд. */
+@media (max-width: 19.99em) {
+  .legal__title { font-size: min(var(--display-3), calc((100vw - 32px) / 5.4)); }
+  .legal h2 { font-size: min(var(--display-1), calc((100vw - 32px) / 4.4)); }
+  .site-header .brand__text { display: none; }
+  .site-header .btn--sm { padding-inline: 12px; }
+}

@@ -7,3 +7,7 @@ node_modules/
 # настройки отправки формы — создаются на хостинге (пример: send.config.example.php)
 send.config.php
 .send-rate/
+
+# сборки для выкладки (tools/package.sh, tools/minify.sh) — пересобираются из исходников
+dist/
+release/

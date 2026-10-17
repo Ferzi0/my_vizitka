@@ -53,13 +53,17 @@
       if (t === 'light' || t === 'dark') return t;
       return media.matches ? 'dark' : 'light';
     }
+    // Цвет панели браузера = --bg темы. Берётся из токенов палитры (--n-50 / --n-950 в main.css),
+    // поэтому при смене сезона следует за ним сам. Значения в <meta> HTML — только для первой
+    // отрисовки до JS (и для privacy.html): при смене сезона их нужно поправить руками.
+    var BG = { light: tokenHex('--n-50', '#f9f3ea'), dark: tokenHex('--n-950', '#150809') };
     function sync() {
       var isDark = current() === 'dark';
       btn.setAttribute('aria-label', isDark ? 'Включить светлую тему' : 'Включить тёмную тему');
       btn.title = isDark ? 'Светлая тема' : 'Тёмная тема';
-      var color = isDark ? '#150809' : '#f9f3ea'; // = --bg тем, для панели браузера
-      if (metaLight) metaLight.setAttribute('content', root.hasAttribute('data-theme') ? color : '#f9f3ea');
-      if (metaDark) metaDark.setAttribute('content', root.hasAttribute('data-theme') ? color : '#150809');
+      var color = isDark ? BG.dark : BG.light;
+      if (metaLight) metaLight.setAttribute('content', root.hasAttribute('data-theme') ? color : BG.light);
+      if (metaDark) metaDark.setAttribute('content', root.hasAttribute('data-theme') ? color : BG.dark);
     }
     btn.hidden = false;
     btn.addEventListener('click', function () {
@@ -70,6 +74,26 @@
     });
     onChange(media, sync);
     sync();
+  }
+
+  // CSS-цвет токена (oklch и т. п.) → #rrggbb: рисуем точку на canvas и читаем пиксель.
+  // Если браузер цвет не понял — запасное значение (осень).
+  function tokenHex(name, fallback) {
+    try {
+      var value = getComputedStyle(root).getPropertyValue(name).trim();
+      if (!value) return fallback;
+      var c = document.createElement('canvas');
+      c.width = c.height = 1;
+      var ctx = c.getContext('2d');
+      ctx.fillStyle = '#010203';
+      ctx.fillStyle = value;
+      if (ctx.fillStyle === '#010203') return fallback;
+      ctx.fillRect(0, 0, 1, 1);
+      var d = ctx.getImageData(0, 0, 1, 1).data;
+      return '#' + [d[0], d[1], d[2]].map(function (v) { return (v < 16 ? '0' : '') + v.toString(16); }).join('');
+    } catch (e) {
+      return fallback;
+    }
   }
 
   /* ---------- Мобильное меню ---------- */

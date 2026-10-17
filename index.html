@@ -6,8 +6,8 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
   <title>Ferz — Эдуард Торгашов: сайты, Telegram-боты и веб-сервисы</title>
-  <meta name="description" content="Эдуард Торгашов (Ferz), разработчик из Челябинска. Сайт-визитка от 10 900 ₽ за 2–4 дня, лендинги от 14 900 ₽, Telegram-боты от 4 900 ₽, веб-сервисы с админ-панелью от 30 000 ₽. Работаю удалённо.">
-  <!-- [ЗАПОЛНИТЬ: домен] example.com — заглушка во всех абсолютных URL (canonical, og:*, JSON-LD, sitemap, robots) -->
+  <meta name="description" content="Эдуард Торгашов (Ferz), разработчик из Челябинска: сайт-визитка от 10 900 ₽ за 2–4 дня, лендинги от 14 900 ₽, Telegram-боты от 4 900 ₽, веб-сервисы. Удалённо.">
+  <!-- [ЗАПОЛНИТЬ: домен] example.com — заглушка во всех абсолютных URL (canonical, og:*, JSON-LD, sitemap, robots); замена: tools/set-domain.sh -->
   <link rel="canonical" href="https://example.com/">
   <meta name="theme-color" content="#f9f3ea" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#150809" media="(prefers-color-scheme: dark)">
@@ -19,14 +19,15 @@
   <meta property="og:title" content="Ferz — сайты, Telegram-боты и веб-сервисы">
   <meta property="og:description" content="Эдуард Торгашов, разработчик из Челябинска. Сайт-визитка от 10 900 ₽, Telegram-бот от 4 900 ₽, веб-сервисы с админ-панелью.">
   <meta property="og:url" content="https://example.com/">
-  <meta property="og:image" content="https://example.com/assets/og-image.png">
+  <meta property="og:image" content="https://example.com/assets/og-image.jpg">
+  <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Ferz — Эдуард Торгашов: сайты, Telegram-боты и веб-сервисы. Бордовый ферзь на шахматной доске.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Ferz — сайты, Telegram-боты и веб-сервисы">
   <meta name="twitter:description" content="Эдуард Торгашов, разработчик из Челябинска. Сайт-визитка от 10 900 ₽, Telegram-бот от 4 900 ₽, веб-сервисы с админ-панелью.">
-  <meta name="twitter:image" content="https://example.com/assets/og-image.png">
+  <meta name="twitter:image" content="https://example.com/assets/og-image.jpg">
 
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -49,12 +50,13 @@
   {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
+    "@id": "https://example.com/#service",
     "name": "Ferz — Эдуард Торгашов",
     "description": "Разработка сайтов-визиток, лендингов, Telegram-ботов и веб-сервисов с админ-панелью. Работа удалённо, при необходимости встреча в Челябинске.",
     "url": "https://example.com/",
-    "image": "https://example.com/assets/og-image.png",
+    "image": "https://example.com/assets/og-image.jpg",
     "address": { "@type": "PostalAddress", "addressLocality": "Челябинск", "addressCountry": "RU" },
-    "availableLanguage": "ru",
+    "knowsLanguage": "ru",
     "founder": {
       "@type": "Person",
       "name": "Эдуард Торгашов",
@@ -68,7 +70,12 @@
       { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Информационный лендинг" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": 14900, "priceCurrency": "RUB" } },
       { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Telegram-бот" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": 4900, "priceCurrency": "RUB" } },
       { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Веб-сервис с админ-панелью" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": 30000, "priceCurrency": "RUB" } },
-      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Интернет-магазин" } }
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Интернет-магазин" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Дизайн в Figma" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Вёрстка" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Бэкенд" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Наполнение сайта" } },
+      { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Платная поддержка" } }
     ]
   }
   </script>

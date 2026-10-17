@@ -17,7 +17,10 @@
    2) Или просто поправьте числа в блоке autumn.
    Яркость (L) ступеней фиксирована, поэтому контраст текста почти не зависит от оттенка;
    после смены сезона всё равно перепроверьте контраст (см. STATUS.md, раздел проверки).
-   Цвет полоски браузера: meta theme-color в index.html и значения в js/main.js.
+   Цвет полоски браузера (theme-color): js/main.js берёт его из --n-50 / --n-950 и следует за сезоном сам;
+   значения в <meta name="theme-color"> index.html и privacy.html (первая отрисовка до JS, privacy без main.js)
+   поменяйте руками на новые --bg светлой и тёмной темы. favicon.svg, apple-touch-icon.png и og-image.jpg
+   нарисованы в осенней палитре — их тоже нужно перерисовать вручную.
 
    Прогрессия при прокрутке (пишет js/main.js, initProgress; значения по умолчанию —
    законченная статичная композиция: так страница выглядит без JS и при reduced-motion):
@@ -721,7 +724,12 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
 @media (max-width: 23.4em) {
   .brand__name { display: none; }
   .nav-toggle__label { display: none; }
-  .nav-toggle { padding-inline: var(--space-3); }
+  /* отступы шапки — в px (при шрифте 100 % это те же 8 / 12 px): при крупном шрифте браузера
+     rem-отступы удваивались, и переключатель темы уходил на второй ряд */
+  .site-header__inner { gap: 8px 12px; }
+  .brand { gap: 12px; }
+  .nav-toggle { padding-inline: 12px; }
+  .theme-toggle { padding-inline: 8px; }
 }
 
 /* ---------- 11. Слой «идущего ферзя» ---------- */
@@ -923,7 +931,16 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
 .hero__line { display: inline; }
 .hero__line--accent { color: var(--brand-display); }
 .hero__mark {
-  background: linear-gradient(transparent 82%, color-mix(in oklch, var(--accent) 70%, transparent) 82% 94%, transparent 94%) no-repeat;
+  /* латунная полоса — подчёркивание НИЖЕ ножек «Д» (они уходят под строку на ≈ 0,14em):
+     раньше полоса-фон шла сразу под строкой, ножки лежали на ней — в тёмной теме розовое на золоте ≈ 1,1:1.
+     skip-ink не подходит: Chrome обрывает полосу перед «Д» целиком. */
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in oklch, var(--accent) 70%, transparent);
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.18em;
+  text-decoration-skip-ink: none;
+  /* строка чуть выше обычной (0,92): если фраза переносится, полоса не задевает следующую строку */
+  line-height: 1.1;
 }
 .hero__lead {
   max-width: 36rem;
@@ -1840,6 +1857,61 @@ h1, h2, h3, .display { overflow-wrap: break-word; hyphens: manual; }
 @media (min-width: 64em) {
   .site-footer__inner { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
   .site-footer__copy { grid-column: 1 / -1; }
+}
+
+/* ---------- 20a. Крупный шрифт браузера на узком экране ----------
+   em в медиазапросе считается от размера шрифта браузера, поэтому блок включается, только когда
+   экран узок ОТНОСИТЕЛЬНО шрифта: при 100 % — уже 320 px (на обычных телефонах не срабатывает,
+   дизайн прежний), при 150 % — уже 480 px, при 200 % — уже 640 px («Шрифт: крупный» на телефоне).
+   Здесь: поля и внутренние отступы — в px, крупные заголовки не шире колонки (calc от 100vw),
+   сетки в одну колонку, длинные слова переносятся, а не вылезают и не обрезаются. */
+@media (max-width: 19.99em) {
+  :root { --gutter: 16px; }
+  /* слово, которое не помещается в строку целиком, переносится по буквам (а не вылезает и не обрезается);
+     hyphens: auto для всего текста не используется — Chrome начинает переносить по слогам почти каждую строку.
+     Исключение — крупные заголовки и вопросы FAQ на самом узком экране (≤ 11em: 320 px при шрифте 200 %),
+     где слово («маршрутного», «поддерживать») не помещается в строку даже целиком: там перенос по слогам
+     с дефисом вместо разрыва по буквам. hyphenate-limit-chars — только слова от 8 букв, по 4 с каждой стороны */
+  body, h1, h2, h3, .display { overflow-wrap: anywhere; }
+  .btn--lg { padding-inline: 16px; }
+  .js .site-nav__list a { white-space: normal; font-size: min(var(--display-1), calc((100vw - 32px) / 6)); }
+
+  .facts { grid-template-columns: minmax(0, 1fr); }
+  .facts__item:nth-child(odd) { border-right: 0; }
+  .facts__item:nth-child(even) { padding-left: 0; }
+  .facts__num { font-size: min(var(--display-2), calc((100vw - 32px) / 3.4)); }
+  .portrait { flex-wrap: wrap; }
+
+  .card { padding: 16px; }
+  .card__piece { top: 12px; right: 12px; width: 40px; height: 40px; }
+  .card__kicker { padding-right: 48px; }
+  .card__title { padding-right: 0; font-size: min(var(--display-1), calc((100vw - 64px) / 4.4)); }
+  .card__price .display { font-size: min(var(--display-2), calc((100vw - 64px) / 4.2)); }
+  .card__price--text .display { font-size: min(var(--display-1), calc((100vw - 64px) / 4.4)); }
+  .cta-band { padding: 20px; }
+  .cta-band__big { font-size: min(var(--display-2), calc((100vw - 72px) / 3.8)); }
+  .case__body { padding: 16px; }
+
+  /* доска технологий — в одну колонку, тёмные клетки чётные (шахматка сохраняется) */
+  .stack { grid-template-columns: minmax(0, 1fr); }
+  .stack__tile { min-height: 0; }
+  .stack__tile:nth-child(n) { background: var(--surface); }
+  .stack__tile:nth-child(n) .stack__name { color: var(--brand); }
+  .stack__tile:nth-child(n) .stack__role { color: var(--fg-muted); }
+  .stack__tile:nth-child(even) { background: var(--wine-bg); }
+  .stack__tile:nth-child(even) .stack__name { color: var(--wine-display); }
+  .stack__tile:nth-child(even) .stack__role { color: var(--wine-fg-muted); }
+  .stack__name { font-size: min(clamp(1.6rem, 1.2rem + 1.6vw, 2.6rem), calc((100vw - 64px) / 4.8)); }
+
+  .contact__title { font-size: min(var(--display-4), calc((100vw - 32px) / 3)); }
+  .site-footer__name { font-size: min(var(--display-1), calc((100vw - 32px) / 4.4)); }
+  .qa__q { padding-right: 40px; }
+  .qa__q::after, .qa__q::before { right: 10px; }
+  .qa__a { padding-right: 0; }
+  .step { padding: 16px; }
+}
+@media (max-width: 11em) {
+  h1, h2, h3, .display, .qa__q { -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 8 4 4; }
 }
 
 /* ---------- 21. Движение и печать ---------- */

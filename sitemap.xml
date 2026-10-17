@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- [ЗАПОЛНИТЬ: домен] example.com — заглушка -->
+<!-- [ЗАПОЛНИТЬ: домен] example.com — заглушка (замена: tools/set-domain.sh) -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://example.com/</loc>

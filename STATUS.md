@@ -26,8 +26,8 @@
 |---|---|---|
 | 0 | Сбор данных, git init | готово (коммит c2c2282) |
 | 1–2 | Структура, контент, дизайн-система, вёрстка, адаптив | готово: антибаг пройден, приёмка оркестратора, коммит |
-| 3 | JS: прогрессия ферзя при прокрутке, форма, аналитика | готово к антибагу (коммита нет) |
-| 4 | SEO, безопасность, производительность | ожидает |
+| 3 | JS: прогрессия ферзя при прокрутке, форма, аналитика | готово (коммит 7720302) |
+| 4 | SEO, безопасность, производительность | готово: антибаг пройден, приёмка оркестратора, коммит |
 | 5 | Финальная проверка, README, сдача | ожидает |
 
 ## Этапы 1–2 (Opus) — структура, контент, дизайн-система, вёрстка, адаптив обеих тем
@@ -363,6 +363,165 @@ PHP: `scratchpad/phpbin/php` (8.3.32). Серверы: `php -S :8793` (стен�
 - В README описать: Netlify/Cloudflare Pages не исполняют PHP (форма → mailto); не выкладывать .git, STATUS.md, ANALYTICS.md; `allowed_hosts` в send.config.php обязателен за прокси, подменяющим Host.
 - Кнопка «Отправить» во время отправки не меняет вид — оставлено, дизайн.
 
+## Этап 4 (Opus) — SEO, метаданные, безопасность, производительность, долг
+
+**Статус:** готово к антибагу. Коммит не делался.
+Скрипты (вне проекта, `scratchpad/pw/`): `s4zoom.js` (настоящий размер шрифта браузера), `s4same.js` (попиксельное «было/стало» против HEAD), `s4zshots.js`, `s4mark.js`, `s4apache.js` (Apache: статусы, заголовки, сжатие, 304, консоль/CSP, форма через PHP), `s4pp.js` (Permissions-Policy, буфер обмена), `s4seo.js`, `s4theme.js`, `s4csp.mjs` (csp_evaluator); `scratchpad/seo/ldcheck.py` (JSON-LD по словарю schema.org). Кадры и отчёты: `scratchpad/ferz-stage4/` (журналы регресса — в `regress/`). Apache: `scratchpad/ferz-stage4/apache/*.conf`.
+
+### Что сделано
+**1. Крупный шрифт браузера (долг антибага этапа 3).** Эмуляция — CDP `Page.setFontSizes` (как у антибага; меняет rem и em в медиазапросах), шрифт 16/20/24/28/32 px × ширина 320…1440.
+- `css/main.css`, блок **20a** `@media (max-width: 19.99em)`. Он включается, только когда экран узкий относительно шрифта: при 100 % — уже 320 px (на телефонах не срабатывает), при 150 % — уже 480 px, при 200 % — уже 640 px. Что делает блок: поле страницы 16 px; внутренние отступы карточек, шагов, кейсов, cta-полосы и FAQ — в px; доска технологий — в одну колонку, тёмные клетки чётные (шахматка сохраняется); цифры первого экрана — в одну колонку; крупные заголовки не шире колонки (`min(токен, calc((100vw − …)/k))`); `overflow-wrap: anywhere` на тексте и заголовках, поэтому слово, которое не помещается в строку целиком, переносится, а не обрезается; `.btn--lg` с отступом 16 px; пункты раскрытого мобильного меню могут переноситься.
+- Шапка (блок `max-width: 23.4em`): отступы в px (при 100 % те же 8/12 px). Переключатель темы больше не уходит на второй ряд.
+- `css/privacy.css`: заголовок и h2 не шире колонки; в узком режиме в шапке остаётся знак ферзя (у ссылки есть `aria-label`) и кнопка «На главную» в один ряд.
+- `hyphens: auto` пробовал и отказался: Chrome начинает переносить по слогам почти каждую строку. `&shy;` в «конфиденциальности» тоже убрал: он менял перенос и при 100 %.
+**2. Заголовки для Apache (`.htaccess`)**, всё внутри `<IfModule>`:
+- CSP та же, что в `_headers`: без `unsafe-inline`, `connect-src 'self'` (fetch на send.php), `form-action 'self' mailto:`, `frame-ancestors 'none'`, без `upgrade-insecure-requests`. Для privacy.html своя, более узкая (`FilesMatch`, `form-action 'none'`). Плюс nosniff, Referrer-Policy, Permissions-Policy (19 функций запрещены; все они известны Chromium — неизвестные дают предупреждение в консоли, это проверено на `foobarfeature`/`battery`; `clipboard-write` не запрещён, иначе ломается копирование почты), COOP same-origin, X-Frame-Options DENY. HSTS — закомментированная заготовка с пояснением.
+- Кэш: html/css/js/xml/txt — `no-cache` (проверка по ETag, ответ 304: в именах файлов нет хешей, поэтому длинный кэш дал бы старый CSS при новом HTML), шрифты — год `immutable`, картинки — неделя. Исправлена ошибка Apache 2.4: mod_deflate дописывает к ETag `-gzip`, и проверка всегда отдавала 200 — добавлен `RequestHeader edit` (без него 200, с ним 304: проверено).
+- Сжатие: brotli, если есть mod_brotli (с откатом на gzip), иначе deflate — для html/css/js/json/svg/xml/txt. MIME: `font/woff2`, `image/svg+xml`, `text/javascript`, utf-8.
+- Закрыто: прежние служебные файлы + `*.sh`; через `<If>` (только Apache 2.4) — `/.git`, `/.svn`, `/.hg`, `/.send-rate`, `/tools`, `/node_modules`, а также **листинг каталогов**: каталог без index.html отвечает 403. Всё это работает без `Options`.
+- `_headers` (Netlify / Cloudflare) приведён к тому же набору, добавлены кэш и предупреждение про PHP.
+**3. SEO.** Title и description уже были; description сокращён до 158 символов (факты те же). privacy.html получила Open Graph и Twitter-карточку. JSON-LD: `availableLanguage` (не применимо к ProfessionalService) заменён на `knowsLanguage`, добавлены `@id` и 5 услуг из блока «Также делаю отдельно» (Figma, вёрстка, бэкенд, наполнение, платная поддержка; без цен — их нет в фактах). Телефона, почты и выдуманного нет. `og:image:type`. **`tools/set-domain.sh ДОМЕН [--dry-run] [--from старый]`** заменяет `https://example.com` и `data-domain` во всех нужных местах (index, privacy, sitemap, robots, JSON-LD, og/twitter), показывает diff и проверяет имя домена (кириллица — в punycode). Почту `hello@example.com` не трогает.
+**4. Производительность.** og-image: PNG 285 КБ → **JPEG 99 КБ** (q80, sRGB, 1200×630; кадр и вырезка с текстом просмотрены). `og-image.png` удалён, ссылки переведены на `.jpg`. Preload шрифтов **оставлен осознанно**: без него Lighthouse даёт CLS 0,06, FCP 1,4–1,5 с вместо 1,1 и LCP до 1,7 с (3 прогона). Шум в консоли бывает только на file://, на хостинге его нет; preload «по условию» в статике невозможен. **`tools/minify.sh`** (npx esbuild@0.25.10, без `--target` — современный синтаксис сохраняется) собирает `dist/`, исходники не меняет: main.css 18,0 → 10,9 КБ gzip, main.js 9,2 → 5,7 КБ, первый экран без шрифтов 46,0 → 35,2 КиБ. Это необязательно: Lighthouse и без сборки 98–100. HTML не минифицируется: в нём комментарии-инструкции, а выигрыш ≈ 1 КБ.
+**5. Пакет.** **`tools/package.sh [--min] [--static] [--out DIR] [--no-zip]`** собирает `release/ferz-site/` и `.zip` (19 файлов, 192 КБ). Состав: index, privacy, robots, sitemap, css, js, assets (с лицензиями OFL), send.php, .htaccess. Не входят: *.md, .git, .gitignore, tools, _headers, send.config*.php. `--static` — для Netlify / Cloudflare: с `_headers`, без PHP и .htaccess, `data-endpoint` у формы убран. В конце скрипт напоминает создать send.config.php на сервере. `dist/` и `release/` добавлены в `.gitignore`: это сборки, их всегда можно пересобрать, а в git они разошлись бы с исходниками.
+**6. Долг.**
+- «Д» на латунной полосе: полоса теперь — `text-decoration` ниже ножек «Д» (offset 0,18em, толщина 0,12em, skip-ink none — skip-ink в Chrome обрывает полосу перед «Д» целиком). У строки `line-height` 1,1, чтобы при переносе полоса не задевала следующую строку. Из-за этого страница на 9–17 px выше — единственное изменение раскладки при 100 %.
+- theme-color при смене сезона: main.js берёт цвет из `--n-50` / `--n-950` (через canvas → #hex). Для осени результат совпадает с прежним (#f9f3ea / #150809), для зимы получается #ecf5fc / #060d16. В комментарии в начале main.css написано, что поменять руками: meta в HTML, favicon, apple-touch-icon, og-image.
+
+### Таблица критериев раздела 7 ТЗ
+| Критерий | Проверка | Результат |
+|---|---|---|
+| Performance ≥ 95, LCP < 2,5 с, CLS < 0,1 | `npx lighthouse --form-factor=mobile` на Apache (.htaccess), исходники :8798 и dist :8801 | index (исходники): 98 / 100 / 100 (3 прогона); LCP 1,5 с, CLS 0, TBT 10–160 мс. dist: 100 / 100, LCP 1,4 с. privacy: 100 / 100 |
+| INP < 200 мс (прокси) | `node s3perf.js` (CPU ×4) | максимум события 40 мс, long tasks 0, кадры p95 16,7 мс |
+| Вес первого экрана ≤ 200 КБ без шрифтов | Lighthouse network-requests | 46,0 КиБ (dist 35,2), шрифты 44,1 КиБ |
+| Accessibility ≥ 95 | Lighthouse + `node s3axe.js` (20 состояний) | 100; axe — 0 нарушений |
+| Клавиатура, фокус, ландмарки | `node s3qa.js` (Tab, меню, Esc) | 71 PASS / 0 FAIL |
+| Заголовки h1–h3 | `node s4seo.js` | по одному h1, пропусков уровней нет (index 1-2-3, privacy 1-2) |
+| Текст 200 % | `s4zoom.js`: шрифт 16–32 px × 320–1440 × с JS и без × 2 страницы (240 состояний); `ab3-client.js` | обрезанного текста 0, горизонтальной прокрутки 0, шапка в один ряд везде; ab3-client 16 PASS / 0 FAIL (раньше 360/390 падали). Остались только переносы длинных слов по буквам при ≥ 175 % на ≤ 430 px (18 состояний, см. «Долг») |
+| Дизайн при 100 % не изменился | `s4same.js` против HEAD | privacy — попиксельно совпадает на 320–1440 × 2 темы; index совпадает везде, кроме сдвига от полосы под «Д» (+9…17 px высоты) |
+| Контраст | `tokens.js`, `ab3-pixel.js`, `ferzaudit.js` | 118 пар — 0 провалов; 1996 текстовых узлов — 0 провалов (п. 8 «Д» больше не падает); аудит — 0 |
+| SEO: title, description, OG, Twitter, JSON-LD, sitemap, robots, lang | `s4seo.js`, `ldcheck.py` (словарь schema.org, 49 свойств), `xmllint`, Lighthouse SEO | все теги есть; JSON-LD — 0 ошибок; sitemap валиден; SEO 100 |
+| Строгая CSP без unsafe-inline | `s4apache.js` на Apache, `csp_evaluator` | 63 PASS / 0 FAIL (AllowOverride All и FileInfo AuthConfig, а также dist); нарушений CSP 0 (слушатель securitypolicyviolation), консоль пуста; evaluator — только общее замечание «'self' и JSONP/загрузки», к сайту не относится |
+| noopener на внешних ссылках | `s4seo.js` | target=_blank без noopener — 0 |
+| Нет секретов в репозитории | `git status`, `.gitignore` | send.config.php игнорируется, в пакет не входит |
+| Нет innerHTML с данными | grep innerHTML/outerHTML/insertAdjacent/eval/document.write в js | 0 |
+| Санитизация формы | `phptest.js`, `ab3-phptest.js`, `ab3-php.js`, `ab3-stress.js` | 43/2 (2 известных ложных FAIL из-за salt.php, см. антибаг 3), 45/0, 22/0, стресс: 3 письма |
+| Нет ошибок в консоли; работа без JS | s3qa (консоль под CSP, без JS, reduced-motion), s4apache | пусто; без JS всё видно, форма — mailto с required |
+| Браузеры Chrome / Safari / Firefox / iOS | — | только Chromium (см. «Не проверялось») |
+| Пакет для выкладки | `package.sh` → `php -S` на распакованной копии + `s4apache.js BROWSER_ONLY` | 5/5: консоль чистая, шрифты, форма 200, письмо ушло |
+
+### nginx (готовые строки, в `server { … }`)
+```nginx
+add_header Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; form-action 'self' mailto:; base-uri 'none'; object-src 'none'; frame-ancestors 'none'" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Permissions-Policy "accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), usb=(), xr-spatial-tracking=(), browsing-topics=()" always;
+add_header Cross-Origin-Opener-Policy "same-origin" always;
+add_header X-Frame-Options "DENY" always;
+# add_header Strict-Transport-Security "max-age=31536000" always;   # только после рабочего HTTPS
+autoindex off;
+gzip on; gzip_types text/css text/javascript application/javascript application/json image/svg+xml application/xml text/plain;
+location ~ /\.(?!well-known) { deny all; }
+location ~* ^/(tools|node_modules|\.send-rate|dist|release)/ { deny all; }
+location ~ (\.md|_headers|\.log|error_log|\.sh|send\.config(\.example)?\.php)$ { deny all; }
+location ~* \.(html|css|js|xml|txt)$ { add_header Cache-Control "no-cache"; # ВНИМАНИЕ: add_header внутри location
+  # отменяет заголовки уровня server — повторите здесь 6 строк безопасности выше (или вынесите их в include)
+}
+location ~* \.woff2$ { add_header Cache-Control "public, max-age=31536000, immutable"; types { font/woff2 woff2; } }
+location = /privacy.html { add_header Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'" always; } # + остальные заголовки (то же правило nginx)
+location = /send.php { include fastcgi_params; fastcgi_param SCRIPT_FILENAME $document_root/send.php; fastcgi_pass unix:/run/php/php-fpm.sock; }
+```
+
+### Решения
+- Если хостинг разрешает в .htaccess только AuthConfig, новые директивы (Header, AddType, AddOutputFilterByType — это FileInfo) дают **500 на всём сайте**. Проверено на Apache с `AllowOverride AuthConfig` → 500. С `All` и с `FileInfo AuthConfig` всё работает. На обычном виртуальном хостинге стоит All. Если после выкладки 500 — оставить в .htaccess только раздел 1 и попросить хостинг включить заголовки. (Антибаг: при «только FileInfo» тоже 500 — из-за `Require`; что удалять в каждом случае, теперь написано в начале .htaccess.)
+- CSP дублируется на ответах send.php (его собственная `default-src 'none'` + общая). Для JSON-ответа это безвредно: действует пересечение политик.
+- CORP не добавлял: соцсети забирают og-image сервером, CORP им не нужен, а пользы для сайта нет.
+- og-image переведён в JPEG: инструментов для квантования PNG (pngquant/oxipng) в системе нет, ставить их не стал.
+
+### Долг
+- При шрифте ≥ 175 % на ≤ 430 px длинные слова (`поддерживать`, `маршрутного`, почта и ник-заглушки, в privacy `localStorage`, `распространяются`) переносятся по буквам без дефиса. Они не обрезаются и не вылезают, но выглядят неаккуратно. Это эквивалент окна 160–245 px.
+- Lighthouse index (исходники) в 1 прогоне из 3: TBT 160 мс, Performance 98. Чтение токенов theme-color вызывает первый пересчёт стилей раньше (≈ 35 мс при CPU ×4). Пересчёт был бы и так, но если важно, чтение можно отложить до простоя.
+- Brotli не проверен (в системном Apache нет mod_brotli), блок написан по документации.
+- Шрифты кэшируются на год: при замене woff2 нужно менять имя файла (написано в .htaccess).
+
+### Что НЕ проверялось
+- Apache 2.2 (ветка Order/Deny), mod_php / PHP-FPM: send.php в тесте исполнял `php -S` за ProxyPassMatch. nginx — строки выше не запускались.
+- Реальный HTTPS и HSTS, CDN/прокси, mod_brotli.
+- Safari / iOS / Firefox: `text-decoration-thickness` / `text-underline-offset`, canvas с oklch для theme-color (при неудаче остаётся осень), em-медиазапрос при крупном шрифте iOS (Dynamic Type) — смотрелось только в Chromium.
+- Реальные превью OG в Telegram / VK / X: проверены теги и картинка, валидаторы соцсетей онлайн не запускались. JSON-LD сверен со словарём schema.org офлайн, Google Rich Results Test не запускался.
+- Скринридеры, реальная доставка почты — как раньше.
+
+## Антибаг: этап 4
+
+**Статус:** проверено независимо, найденное исправлено (кроме «Спорного»). Коммит не делался.
+Стенды и скрипты — вне проекта: `scratchpad/ab4/` (Apache-конфиги `ap/88*.conf`, `hdr.sh`, `lh.sh`, кадры `shots/`, журналы `zoom-*.txt`, `s3qa.txt`), `scratchpad/pw/ab4-*.js` (`ab4-geom.js` — геометрия всех элементов против HEAD, `ab4-zoom.js` — наложения/перекрытия при крупном шрифте, `ab4-hyph.js` — разрывы слов с дефисом и без, `ab4-csp.js` — фолбэк mailto под CSP, `ab4-mailto.js`). Все серверы остановлены.
+
+### Найдено
+**Критично**
+1. **`tools/package.sh --out` удалял любую папку (`rm -rf`) без проверки.** Защита была только от `$ROOT` и `/`. Проверено на копии проекта: `--out victim` (чужая папка рядом) — содержимое удалено; `--out css` из корня проекта — **удалены исходники** `css/main.css` и `css/privacy.css`, скрипт упал уже после удаления. `--out .` и `--out ..` спасал только отказ самого `rm`.
+
+**Важно**
+2. **`tools/minify.sh --in-place` минифицировал исходники.** Защита сравнивала строки: `--in-place .`, `css`, `./css/..`, `../ferz-site` проходили (проверено на копии).
+3. **`.htaccess` при `AllowOverride FileInfo` (без AuthConfig) — 500 на всём сайте** («Require not allowed», Apache 2.4.67). Описан был только случай «только AuthConfig», а совет из «Решений» («оставить раздел 1») в этом случае не помогает: 500 даёт как раз раздел 1.
+4. **Форма без JS в Chrome: кириллица в письме — кракозябры.** `action="mailto:" enctype="text/plain"`: Chrome кодирует тело как UTF-8, прочитанный как Latin-1 (`name=Ð˜Ð²Ð°Ð½` вместо «Иван»). Есть и в HEAD (этапы 1–3), к этапу 4 не относится. Не исправлено — см. «Спорное».
+
+**Мелочи**
+5. `.htaccess`: `RequestHeader edit` исправлял только первый ETag в списке If-None-Match и только суффикс `-gzip`. С mod_brotli (`-br`) проверка кэша всегда отдавала бы 200. Список `"abc-gzip", <верный>` давал 200 вместо 304.
+6. `.htaccess`: правила закрытия чувствительны к регистру. На стенде (macOS, ФС без учёта регистра) `/STATUS.MD` и `/.GIT/HEAD` отдавались с кодом 200. Папки `dist/` и `release/` (если по ошибке выложить весь проект) тоже отдавались, в том числе `release/ferz-site.zip`.
+7. `_headers`: в CSP для privacy директивы шли в другом порядке, чем в `.htaccess`. Смысл тот же, но текст не совпадал.
+8. `package.sh`: `--static` без `--out` затирал пакет для Apache `release/ferz-site`. `--help` печатал строки кода. Под bash (`#!/bin/sh` → bash на Linux) новая строка с `«$OUT»` давала «unbound variable». В свежем клоне без папки `release/` проверка пути падала.
+9. `set-domain.sh`: после смены домена `release/` и `dist/` оставались со старым доменом, и скрипт об этом не говорил.
+10. Долг «перенос по буквам при ≥ 175 % на ≤ 430 px»: смягчение возможно без изменения дизайна (см. «Исправлено»).
+
+**Не подтвердилось (проверено, всё в порядке):** ссылок на `og-image.png` нет (index og/twitter/JSON-LD, privacy og, tools, ANALYTICS; в STATUS — только исторические записи этапов 1–2). `og-image.jpg` — 1200×630, JPEG, 101 КБ, `og:image:type/width/height` верные. JSON-LD — 0 ошибок по словарю schema.org (49 свойств), факты совпадают со страницей (цены, Челябинск, стек), телефона и почты нет. title 58, description 158 символов. hreflang не нужен (один язык). sitemap валиден, robots корректен. `set-domain.sh` на macOS sed работает и с `LC_ALL=C`, повторный запуск ничего не меняет, `--from` туда и обратно работает, почту, Telegram и `.git` не трогает, отклоняет `ферз.рф`, `a.com:8080`, `$(id).com`, `a.com&b`, `evil.com#x`. Блок 20a при 100 % на 320–1440 вид не меняет. CSP нигде не блокирует загрузку.
+
+### Исправлено
+- **package.sh:** путь `--out` приводится к настоящему (`pwd -P`). Отказ, если это корень проекта, папка выше него или папка исходников (внутри проекта разрешены только `dist/` и `release/`). Если папка уже есть, в ней должны лежать только файлы сборки, иначе «посторонний файл … удалять не стану». Пустой или отсутствующий `--out` — ошибка. `--static` по умолчанию собирает в `release/ferz-site-static/`. Исправлены `--help` и `${OUT}`, `release/` создаётся сам.
+- **minify.sh:** у `--in-place` путь приводится к настоящему. Исходники отклоняются, внутри проекта разрешены только `dist/` и `release/*`, в папке должен быть `index.html`. npx проверяется до сборки.
+- **.htaccess:** в шапке написано, что делать при 500 в каждом случае (по тексту из error_log). `RequestHeader edit* … "-(gzip|br)\""`. `(?i)` в FilesMatch и `#i` в `<If>`, к закрытым папкам добавлены `dist|release`.
+- **_headers:** CSP privacy теперь совпадает с `.htaccess` посимвольно; остальные 5 заголовков тоже совпадают (сверено скриптом).
+- **set-domain.sh:** напоминание пересобрать пакет.
+- **main.css (долг переносов):** `@media (max-width: 11em)` (это 320 px при шрифте 200 %): у `h1–h3, .display, .qa__q` включены `hyphens: auto` и `hyphenate-limit-chars: 8 4 4`. «маршрутного», «планировщик», «путешествий», «поддерживать» теперь переносятся по слогам с дефисом, а не по буквам. В остальных состояниях переносы прежние (сравнено по словам на 20 состояниях). `hyphens` для всего текста или для всего блока 20a пробовал: появляются переносы там, где строки раньше переносились чисто (уже при 125 %), поэтому отказался.
+- STATUS (этап 4): строка nginx дополнена `dist|release` и `~*`; к «Решениям» добавлено замечание про FileInfo.
+- `dist/` и `release/` пересобраны исправленными скриптами из текущих исходников.
+
+### Проверено (команда → результат)
+| Что | Команда | Результат |
+|---|---|---|
+| Apache: 47 адресов × 7 конфигураций | `ab4/hdr.sh PORT` (AllowOverride All; FileInfo AuthConfig; AuthConfig; FileInfo; All без mod_headers; All без mod_deflate; FileInfo AuthConfig Indexes Limit Options) | All / FileInfo+AuthConfig / расширенный: на всех ответах (200, 403, 404, шрифты, картинки, svg, xml, txt) ровно одна CSP и 5 заголовков безопасности. privacy.html (и `?x=1`) получает свою CSP (`form-action 'none'`). MIME: woff2 `font/woff2`, svg `image/svg+xml; charset=utf-8`, jpg `image/jpeg`. gzip — html/css/js/svg/xml/txt. Кэш: no-cache / год immutable / неделя. Закрыто 403: send.config(.example).php, *.md, _headers, .htaccess, .gitignore, .git/*, tools/*, dist/*, release/*, error_log, *.log, .send-rate/*, `<64hex>.json`, `/%2egit/HEAD`, `/.GIT/HEAD`, `/STATUS.MD`; листинг css/, assets/, пустой папки — 403. Без mod_headers / mod_deflate — 200, без 500. AuthConfig и FileInfo по отдельности — 500 (как теперь описано). Варианты из инструкции («только раздел 1» при AuthConfig, «без раздела 1» при FileInfo) — 200 |
+| 304 | curl с If-None-Match (gzip / identity / список из двух ETag), If-Modified-Since | 304 везде, в том числе по списку (до исправления — 200); неверный ETag — 200 |
+| Полный набор Apache | `node s4apache.js` на :8811 (исходники), :8822 (dist), :8812 (FileInfo AuthConfig) | 63/0, 63/0, 63/0 (консоль, нарушения CSP, шрифты, форма → send.php 200) |
+| send.php | curl POST / GET | 200 `{"ok":true}`, письмо записано; GET → 405 |
+| CSP и фолбэк | `node ab4-csp.js` (send.php → 500, обрыв сети, без JS) на :8811 и :8822 | 6/0: нарушений CSP 0, переход на `mailto:` происходит; inline-стилей, скриптов и обработчиков в HTML нет (grep) |
+| 100 % против HEAD | `node s4same.js`, `node ab4-geom.js` (все элементы: x, ширина, высота, цвета, шрифт; с JS и без; 2 темы) | privacy совпадает попиксельно. index на 320–1440 меняется только у `h1.hero__title` (полоса под «Д», +8,5…17 px) и предков по высоте, остальное сдвинуто целиком. На 280 px (уже 320) срабатывает 20a: в HEAD там рвались «TypeScript» и «JavaScript», теперь нет |
+| Крупный шрифт | `s4zoom.js` (16–32 px × 280–1440 × JS/без JS × 2 стр.); `ab4-zoom.js` (16–32 × 320–1440 × JS/без × 2 темы × 2 стр. = 280 состояний: наложение строк разных элементов, перекрытие ссылок и кнопок, консоль) | прокрутки по горизонтали 0, ошибок в консоли 0, наложений 0. Перекрытия — только ложные срабатывания: кнопка «Обсудить проект» в закрытом меню (visibility: hidden, Tab её пропускает) и плашка «Ход 7» над «ВАШ ХОД» (касаются только строчные боксы, глифы не пересекаются, кадр просмотрен) |
+| Переносы | `ab4-hyph.js` до/после | разрывов без дефиса при 32/320: index 15 → 9, privacy без изменений; остальные состояния — без изменений |
+| dist | `s4same.js` исходники против dist (16 и 32 px) | ALL SAME |
+| Lighthouse Mobile ×3 | `ab4/lh.sh` на Apache | index: 100/100/100/100, LCP 1,5 с, CLS 0, TBT 0–60 мс. privacy: 100 ×4, LCP 1,5 с. dist index: 100 ×4, LCP 1,5 с, вес 79 КиБ. dist privacy: 100 ×4, LCP 1,4 с |
+| Регресс | `s3qa.js` (CSP-стенд без PHP :8823 + PHP :8811) / `s3axe` / `tokens.js` / `ab3-pixel.js` / `ferzaudit.js` / `s4theme.js` | 71/0 (консоль, Tab, меню, без JS, reduced-motion, прогрессия, форма через PHP) / 0 нарушений / 118 пар, 0 провалов / 1996 узлов, 0 провалов / 0 / theme-color осень и зима верные |
+| Скрипты | копия проекта; `sh` (bash) и `dash`; 11 опасных и 5 нормальных вызовов `package.sh`, 5 опасных `minify.sh` | опасные — отказ, исходники и чужие папки целы; нормальные сборки работают из любой папки; в zip 19 файлов (23 записи с папками), `.htaccess` есть; `*.md`, `*.sh`, `tools`, `.git*`, `send.config*` в release/dist отсутствуют |
+
+### Спорное (решить оркестратору)
+- **Без JS письмо из формы в Chrome приходит кракозябрами** (п. 4). Без смены механики не исправить. Варианты: (а) оставить: без JS форма — редкий случай, а почта и Telegram написаны рядом; (б) в `<noscript>` над формой подсказка «без JavaScript напишите на почту», текст новый; (в) `method="get"` и одно поле `body`, но тогда меняются имена полей, а их используют send.php и JS. Рекомендую (а) или (б).
+- В сводке STATUS сказано «согласие переписано на „Я даю согласие“», а на странице (и в HEAD) — «Даю согласие на обработку…». Текст нейтральный, но с решением не совпадает: проверить, какой вариант утверждён.
+- Ответы send.php под mod_php получат CSP, nosniff и Referrer-Policy дважды (`Header always` из `.htaccess` и свои из PHP). Это безвредно: действует пересечение CSP, у Referrer-Policy — последнее значение (`no-referrer`). Под mod_php не проверялось: на стенде PHP стоит за прокси.
+
+### Долг
+- Остались разрывы по буквам без дефиса: почта и ник-заглушки (≥ 150 % на ≤ 390 px), «конфиденциальности» в подписи согласия, «Отправить» на кнопке (175 % на 320 px), в privacy при 200 % на 320 px — `localStorage`, `sessionStorage` и 4 русских слова. Переносы по слогам в обычном тексте дают переносы и там, где их раньше не было, поэтому оставлено.
+- `hyphenate-limit-chars` в Safari не поддерживается: там в узком режиме (≤ 11em) заголовки могут переноситься по слогам чаще. В Safari не смотрелось.
+- Brotli, mod_php / PHP-FPM, nginx — как у этапа 4.
+
+### Не проверялось
+- GNU sed / Linux для `set-domain.sh` (в системе только BSD sed; выражения — стандартный BRE). `package.sh` и `minify.sh` проверены в `sh` (bash) и `dash`.
+- Apache 2.2, mod_php, PHP-FPM, mod_brotli, реальный HTTPS/HSTS, Netlify и Cloudflare с настоящим `_headers`.
+- Safari, Firefox, iOS (переносы, `text-decoration-thickness`, canvas для theme-color; в браузерах с защитой от отпечатка canvas цвет может слегка отличаться — останется близкий оттенок).
+- Почтовая программа после `mailto:` (смотрелась только сформированная ссылка), скринридеры, реальные превью соцсетей.
+
+## Решения оркестратора по антибагу этапа 4
+
+- Форма без JS в Chrome портит кириллицу в письме (`mailto` + `enctype=text/plain`): оставлено, это редкий случай (нет JS), рядом есть прямые ссылки на почту и Telegram. Долг.
+- Текст согласия: на странице «Даю согласие на обработку…» — утверждён как итоговый.
+- Двойные заголовки у send.php под mod_php — безвредно, не проверялось.
+
 ## Сводка
 
 - **Сделано (этапы 1–2):** концепция «ход ферзя» (разделы = ходы 1…7 с шахматной нотацией, SVG-ферзь и доска на первом экране), услуги и цены (5 карточек), «Как работаю», 3 работы без цифр результатов, стек, FAQ, контакты и форма-каркас, privacy.html, мета/JSON-LD/sitemap/favicon/og-image, палитра из 5 чисел (OKLCH) с сезонами. Шрифт: Bebas Neue без кириллицы, взят «Ferz Display» (Bebas + Sofia Sans Extra Condensed), текст Onest. Коммит не делался.
@@ -384,3 +543,15 @@ PHP: `scratchpad/phpbin/php` (8.3.32). Серверы: `php -S :8793` (стен�
 - **Новые заглушки:** `send.config.php` (`to`, `salt`, при необходимости `from`, `envelope_from`, `allowed_hosts`); в privacy.html окно лимита (10 минут) и способ отправки после настройки сервера; выбор сервиса аналитики (ANALYTICS.md) и строка о нём в privacy.html.
 - **Не проверялось:** реальная доставка письма (`mail()` писал в файл; SPF/DKIM, спам, Gmail/Яндекс/Outlook); PHP 7.4 (только чтение кода); mod_php, PHP-FPM, nginx, реальный прокси или CDN; Apache 2.2; Safari/iOS и Firefox; скринридеры; тач-прокрутка и адресная строка на телефоне; открытие mailto в почтовой программе.
 - **Git:** коммит не делался (хранитель git). Таблица этапов не менялась: этап 3 по-прежнему «готово к антибагу (коммита нет)».
+
+### Этап 4 (сводка монитора)
+
+- **Сделано:** крупный шрифт браузера (блок 20a в `main.css`, шапка, `privacy.css`, переносы при ≥ 175 % на ≤ 430 px); заголовки Apache (`.htaccess`: CSP без unsafe-inline, nosniff, Referrer-Policy, Permissions-Policy, COOP, X-Frame-Options, кэш, сжатие, закрытие служебных файлов и листинга) и Netlify/Cloudflare (`_headers`); SEO (description 158 символов, OG/Twitter у privacy, JSON-LD с 5 услугами, `tools/set-domain.sh`); производительность (og-image JPEG 99 КБ вместо PNG 285 КБ, `tools/minify.sh`, preload шрифтов оставлен осознанно); пакет `tools/package.sh` (release/ferz-site, 19 файлов, 192 КБ).
+- **Проверено:** Lighthouse Mobile index и privacy 100/100/100/100 (LCP 1,5 с, CLS 0); axe 0 нарушений (20 состояний); CSP на Apache 63 PASS / 0 FAIL; `s3qa` 71 PASS / 0 FAIL; контраст 118 пар и 1996 текстовых узлов, 0 провалов; текст 200 %: 280 состояний без обрезания и горизонтальной прокрутки; Apache: 47 адресов × 7 конфигураций; при 100 % privacy совпадает с HEAD попиксельно.
+- **Антибаг, критичный (исправлено):** `tools/package.sh --out` удалял любую папку через `rm -rf`, в том числе `css/` с исходниками.
+- **Антибаг, важные:** `minify.sh --in-place` мог минифицировать исходники (исправлено); `.htaccess` при `AllowOverride FileInfo` без AuthConfig давал 500 на всём сайте (в шапке файла описано, что делать); форма без JS в Chrome присылает кириллицу кракозябрами (не исправлено, см. «Решения»).
+- **Антибаг, мелочи (исправлено):** ETag с `-br`, регистр в правилах закрытия (`/STATUS.MD`, `/.GIT/HEAD`), порядок директив CSP в `_headers`, `package.sh --static` и `--help`, напоминание в `set-domain.sh` пересобрать пакет, переносы длинных слов в заголовках при ≤ 320 px и 200 %.
+- **Решения оркестратора:** форма без JS оставлена как есть (редкий случай, рядом прямые ссылки на почту и Telegram); текст согласия «Даю согласие на обработку…» утверждён; двойные заголовки у send.php под mod_php признаны безвредными, но не проверялись.
+- **Долг:** переносы по буквам без дефиса при ≥ 150–175 % на ≤ 390–430 px (почта, ник, «Отправить», `localStorage`); `hyphenate-limit-chars` не работает в Safari; Brotli не проверен; кириллица в mailto без JS; сезон не меняет favicon, apple-touch-icon и og-image (theme-color теперь берётся из токенов).
+- **Новые заглушки:** в записи этапа 4 новых `[ЗАПОЛНИТЬ]` не указано; прежние (домен, почта, Telegram, бот, GitHub, сертификаты, FAQ, privacy, фото) остаются.
+- **Не проверялось:** Safari/iOS и Firefox; Apache 2.2, mod_php, PHP-FPM, nginx (строки не запускались); реальный HTTPS/HSTS, CDN, mod_brotli; GNU sed для `set-domain.sh`; Netlify/Cloudflare с настоящим `_headers`; скринридеры; реальная доставка почты и открытие mailto; превью соцсетей и Google Rich Results.

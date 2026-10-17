@@ -10,13 +10,24 @@
 #                (и img-src 'self' https://ИМЯ.goatcounter.com — запасной способ отправки, см. ANALYTICS.md)
 #   Umami:       script-src 'self' https://АДРЕС-UMAMI;   connect-src 'self' https://АДРЕС-UMAMI
 #   (privacy.html аналитику не грузит — её правило не меняйте.)
-# На Apache / nginx файл _headers не действует: те же заголовки нужно прописать в конфиг (этап 4).
+# На Apache файл _headers не действует — тот же набор в .htaccess; для nginx — строки в STATUS.md («Этап 4»).
+# Netlify / Cloudflare Pages НЕ исполняют PHP: send.php там отдаётся как текст и форма уходит в mailto —
+#   уберите data-endpoint у формы в index.html и выкладывайте только пакет из tools/package.sh.
 /*
   Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; form-action 'self' mailto:; base-uri 'none'; object-src 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), usb=(), xr-spatial-tracking=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+  X-Frame-Options: DENY
 # Внимание: Netlify и Cloudflare Pages ОБЪЕДИНЯЮТ заголовки совпавших правил (через запятую), а не заменяют —
 # для privacy.html действуют обе политики сразу (пересечение). Это безопасно: обе разрешают всё, что нужно странице.
 /privacy.html
-  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'
+# Кэш: в именах файлов нет хешей — HTML/CSS/JS с проверкой (no-cache), шрифты — год.
+/css/*
+  Cache-Control: no-cache
+/js/*
+  Cache-Control: no-cache
+/assets/fonts/*
+  Cache-Control: public, max-age=31536000, immutable

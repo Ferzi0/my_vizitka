@@ -1,10 +1,20 @@
-# Apache: закрываем от HTTP служебные файлы. nginx этот файл не читает — см. send.config.example.php.
-# Настройки отправки формы (адрес почты, соль), примеры и внутренние заметки не должны отдаваться по HTTP.
+# Apache 2.4 (обычный хостинг с PHP). Тот же набор заголовков, что в _headers (Netlify / Cloudflare Pages);
+# для nginx — готовые строки в STATUS.md («Этап 4», раздел «nginx»).
+# Нужен AllowOverride FileInfo AuthConfig (на виртуальном хостинге обычно All). Директива Options
+# здесь не используется: при запрещённом «AllowOverride Options» она даёт 500 на всём сайте.
+# Если после выкладки весь сайт отвечает 500 — хостинг разрешил не всё; в error_log будет причина:
+#   «AddType/Header … not allowed here» (только AuthConfig) → оставьте раздел 1, удалите разделы 2–5;
+#   «Require not allowed …» (только FileInfo)             → удалите раздел 1 (send.config.php — PHP,
+#      по HTTP он исполняется и ничего не выводит; *.md, .git, tools/ просто не выкладывайте).
+#   Лучше — попросить хостинг включить AllowOverride FileInfo AuthConfig (или All).
+# Каждый блок обёрнут в <IfModule>: если модуля нет, блок просто пропускается.
+
+# ---------- 1. Служебные файлы не отдаются по HTTP ----------
+# Настройки отправки формы (адрес почты, соль), примеры и внутренние заметки.
 # Счётчики частоты send.php по умолчанию лежат во временной папке системы, вне сайта.
-# Папку .git на хостинг не выкладывайте: FilesMatch закрывает файлы по имени, а не папки.
 # error_log / *.log — журнал PHP, который многие хостинги кладут рядом со скриптом;
 # <64 hex>.json — счётчики частоты, если rate_dir указали внутри сайта (.send-rate/).
-<FilesMatch "^(send\.config(\.example)?\.php|.*\.md|_headers|\.gitignore|\.ht.*|\.DS_Store|error_log|.*\.log|[0-9a-f]{64}\.json)$">
+<FilesMatch "(?i)^(send\.config(\.example)?\.php|.*\.md|_headers|\.gitignore|\.ht.*|\.DS_Store|error_log|.*\.log|.*\.sh|[0-9a-f]{64}\.json)$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>
@@ -13,4 +23,91 @@
     Deny from all
   </IfModule>
 </FilesMatch>
-# Заголовки безопасности (CSP и др.) для Apache — этап 4; сейчас они описаны в _headers (Netlify / Cloudflare Pages).
+
+# Папки, которых на хостинге быть не должно (если их всё же выложили — например, всю папку проекта
+# вместо пакета из tools/package.sh; dist/ и release/ — это сборки), и листинг каталогов:
+# каталог без index.html (css/, js/, assets/…) отвечает 403 вместо списка файлов.
+# <If> есть только в Apache 2.4 — там же есть mod_authz_core, поэтому он служит проверкой версии.
+<IfModule mod_authz_core.c>
+  <If "%{REQUEST_URI} =~ m#/(\.git|\.svn|\.hg|\.send-rate|tools|node_modules|dist|release)(/|$)#i">
+    Require all denied
+  </If>
+  <ElseIf "-d %{REQUEST_FILENAME} && ! -f '%{REQUEST_FILENAME}/index.html'">
+    Require all denied
+  </ElseIf>
+</IfModule>
+
+# ---------- 2. Типы и кодировка ----------
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/svg+xml .svg
+  AddType text/javascript .js
+  AddType application/xml .xml
+  AddCharset utf-8 .html .css .js .svg .xml .txt
+</IfModule>
+AddDefaultCharset utf-8
+
+# ---------- 3. Заголовки безопасности ----------
+# CSP только здесь (и в _headers), НЕ в <meta>. Всё грузится с того же адреса, 'unsafe-inline' нет.
+# JSON-LD (<script type="application/ld+json">) не исполняется и CSP не нарушает.
+# Форма: fetch на send.php → connect-src 'self'; без JS — action="mailto:" → form-action mailto:.
+# Аналитика (ANALYTICS.md): допишите её адрес в script-src и connect-src строки для index (см. _headers).
+# upgrade-insecure-requests не добавлять: пока нет HTTPS, он ломает загрузку CSS/JS/шрифтов по http.
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; form-action 'self' mailto:; base-uri 'none'; object-src 'none'; frame-ancestors 'none'"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), usb=(), xr-spatial-tracking=(), browsing-topics=()"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set X-Frame-Options "DENY"
+
+  # privacy.html: форм нет, скриптов кроме theme-init нет → form-action 'none'.
+  # connect-src 'self' оставлен: без него Lighthouse не читает robots.txt (SEO 92).
+  <FilesMatch "^privacy\.html$">
+    Header always set Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'"
+  </FilesMatch>
+
+  # HSTS — ВКЛЮЧАТЬ ТОЛЬКО ПОСЛЕ того, как сайт открывается по https:// без ошибок сертификата
+  # (и, желательно, настроен редирект http → https). Браузер запомнит правило на max-age секунд,
+  # и откатиться на http будет нельзя. Начните с короткого срока (max-age=300), потом увеличьте.
+  # Header always set Strict-Transport-Security "max-age=31536000" "expr=%{HTTPS} == 'on'"
+
+  # ---------- 4. Кэш ----------
+  # В именах файлов нет хешей, поэтому HTML, CSS и JS кэшируются с обязательной проверкой
+  # (no-cache = «можно хранить, но перед показом спросить сервер»; ответ 304 почти ничего не весит):
+  # после выкладки новой версии посетитель сразу получает новые стили и скрипты.
+  # Шрифты меняются только вместе с новым именем файла — кэш на год.
+  # Картинки (favicon, og-image) — неделя.
+  <FilesMatch "\.(html|css|js|xml|txt|json)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.woff2$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(png|svg|webp|jpe?g|ico)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+
+  # mod_deflate / mod_brotli дописывают к ETag «-gzip» / «-br», и Apache 2.4 перестаёт узнавать его
+  # в If-None-Match — проверка кэша всегда отдавала бы файл целиком (200 вместо 304).
+  # Убираем суффикс из запроса (edit* — у всех ETag в списке, а не только у первого).
+  RequestHeader edit* "If-None-Match" "-(gzip|br)\"" "\""
+</IfModule>
+
+# ---------- 5. Сжатие ----------
+# Brotli, если на хостинге есть mod_brotli (браузеру без br достанется gzip), иначе gzip.
+<IfModule mod_filter.c>
+  <IfModule mod_brotli.c>
+    <IfModule mod_deflate.c>
+      AddOutputFilterByType BROTLI_COMPRESS;DEFLATE text/html text/css text/javascript application/javascript application/json application/ld+json image/svg+xml application/xml text/xml text/plain
+    </IfModule>
+    <IfModule !mod_deflate.c>
+      AddOutputFilterByType BROTLI_COMPRESS text/html text/css text/javascript application/javascript application/json application/ld+json image/svg+xml application/xml text/xml text/plain
+    </IfModule>
+  </IfModule>
+  <IfModule !mod_brotli.c>
+    <IfModule mod_deflate.c>
+      AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json application/ld+json image/svg+xml application/xml text/xml text/plain
+    </IfModule>
+  </IfModule>
+</IfModule>
