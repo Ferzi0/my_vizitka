@@ -27,7 +27,7 @@
      --progress          0…1 — доля прокрутки страницы (полоска в шапке), непрерывно;
      --section-progress  0…1 — «приход» раздела, на .section-move (по умолчанию 1): заливка
                                контурного номера хода, шахматная сетка фона, значок клетки;
-     --hero-p            0…1 — сколько первого экрана уже прокручено (наклон и парение ферзя);
+     --hero-p            0…1 — сколько первого экрана уже прокручено (параллакс портрета и FERZ);
      --rail-p            0…1 — доля прокрутки (полоса ходов на узких экранах), непрерывно;
      --at                0…1 — место отметки раздела на полосе ходов (на каждой отметке);
      --q-file / --q-rank — клетка ферзя на мини-доске (дробные во время хода; по умолчанию d1 = 4 / 1);
@@ -179,19 +179,17 @@
   --wine-checker: color-mix(in oklch, var(--brand-500) 8%, transparent);
   --wine-plate: var(--brand-950);
 
-  /* Ферзь и доска на первом экране */
-  --q-1: var(--brand-400);
-  --q-2: var(--brand-600);
-  --q-3: var(--brand-800);
-  --q-4: var(--brand-950);
+  /* Клетки мини-доски (.queen-layer) */
   --tile-light: var(--n-0);
   --tile-dark: var(--brand-700);
-  --side-light-l: var(--n-200);
-  --side-dark-l: var(--brand-800);
-  --side-light-r: var(--n-300);
-  --side-dark-r: var(--brand-900);
-  --glow: color-mix(in oklch, var(--accent-300) 55%, transparent);
-  --hero-word: color-mix(in oklch, var(--brand-500) 8%, transparent);
+  /* Сцена портрета на первом экране: «прожектор», контурное FERZ, «пол» */
+  --hero-spot: var(--brand-700);
+  --hero-spot-core: var(--brand-500);
+  --hero-halo: color-mix(in oklch, var(--brand-500) 14%, transparent);
+  --hero-ferz: var(--accent-500);
+  --hero-ferz-fill: color-mix(in oklch, var(--accent-400) 10%, transparent);
+  --hero-floor: color-mix(in oklch, var(--brand-900) 12%, transparent);
+  --hero-shade: color-mix(in oklch, var(--brand-950) 28%, transparent);
 
   color-scheme: light;
 }
@@ -236,18 +234,15 @@
     --wine-checker: color-mix(in oklch, var(--brand-500) 8%, transparent);
     --wine-plate: oklch(0.12 0.02 var(--_bh));
 
-    --q-1: var(--brand-300);
-    --q-2: var(--brand-500);
-    --q-3: var(--brand-700);
-    --q-4: var(--brand-900);
     --tile-light: var(--n-600);
     --tile-dark: var(--brand-800);
-    --side-light-l: var(--n-800);
-    --side-dark-l: var(--brand-900);
-    --side-light-r: var(--n-850);
-    --side-dark-r: var(--brand-950);
-    --glow: color-mix(in oklch, var(--brand-500) 55%, transparent);
-    --hero-word: color-mix(in oklch, var(--brand-400) 9%, transparent);
+    --hero-spot: var(--brand-800);
+    --hero-spot-core: var(--brand-600);
+    --hero-halo: color-mix(in oklch, var(--brand-500) 22%, transparent);
+    --hero-ferz: var(--accent-400);
+    --hero-ferz-fill: color-mix(in oklch, var(--accent-400) 8%, transparent);
+    --hero-floor: color-mix(in oklch, var(--brand-500) 24%, transparent);
+    --hero-shade: color-mix(in oklch, #000 45%, transparent);
     color-scheme: dark;
   }
 }
@@ -289,18 +284,15 @@
   --wine-checker: color-mix(in oklch, var(--brand-500) 8%, transparent);
   --wine-plate: oklch(0.12 0.02 var(--_bh));
 
-  --q-1: var(--brand-300);
-  --q-2: var(--brand-500);
-  --q-3: var(--brand-700);
-  --q-4: var(--brand-900);
   --tile-light: var(--n-600);
   --tile-dark: var(--brand-800);
-  --side-light-l: var(--n-800);
-  --side-dark-l: var(--brand-900);
-  --side-light-r: var(--n-850);
-  --side-dark-r: var(--brand-950);
-  --glow: color-mix(in oklch, var(--brand-500) 55%, transparent);
-  --hero-word: color-mix(in oklch, var(--brand-400) 9%, transparent);
+  --hero-spot: var(--brand-800);
+  --hero-spot-core: var(--brand-600);
+  --hero-halo: color-mix(in oklch, var(--brand-500) 22%, transparent);
+  --hero-ferz: var(--accent-400);
+  --hero-ferz-fill: color-mix(in oklch, var(--accent-400) 8%, transparent);
+  --hero-floor: color-mix(in oklch, var(--brand-500) 24%, transparent);
+  --hero-shade: color-mix(in oklch, #000 45%, transparent);
   color-scheme: dark;
 }
 
@@ -380,11 +372,9 @@
 
   /* Движение */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-move: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-1: 150ms;
   --dur-2: 300ms;
   --dur-3: 650ms;
-  --dur-float: 6s;
 
   --header-h: 4.25rem;
   --z-queen: 5;
@@ -971,37 +961,23 @@ html:not(.js-ready) .queen-layer__label { display: none; }
   isolation: isolate;
 }
 .hero::before {
-  /* шахматное поле — структура фона, тает к краям */
+  /* шахматное поле — фактура позади портрета, тает к краям (центр — за фигурой) */
   content: "";
   position: absolute;
   inset: 0;
   z-index: -2;
   background: conic-gradient(var(--checker) 25%, transparent 0 50%, var(--checker) 0 75%, transparent 0) 0 0 / 96px 96px;
-  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 80% 40%, #000 0%, transparent 72%);
-  mask-image: radial-gradient(ellipse 70% 70% at 80% 40%, #000 0%, transparent 72%);
-}
-.hero__word {
-  position: absolute;
-  z-index: -1;
-  right: -0.06em;
-  top: 0.04em;
-  font-family: var(--font-display);
-  font-size: var(--display-5);
-  line-height: 0.8;
-  text-transform: uppercase;
-  color: var(--hero-word);
-  pointer-events: none;
-  user-select: none;
-}
-@media (max-width: 63.99em) {
-  .hero__word { top: auto; bottom: 18%; }
+  -webkit-mask-image: radial-gradient(ellipse 75% 45% at 50% 82%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(ellipse 75% 45% at 50% 82%, #000 0%, transparent 72%);
 }
 .hero__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-7) var(--space-7);
+  column-gap: var(--space-7);
   align-items: center;
 }
+/* между текстом и портретом — отступ текста; портрет стоит на линии цифр без зазора */
+.hero__copy { position: relative; z-index: 1; padding-bottom: var(--space-7); container-type: inline-size; }
 .eyebrow {
   display: inline-flex;
   align-items: center;
@@ -1018,8 +994,9 @@ html:not(.js-ready) .queen-layer__label { display: none; }
 }
 .hero__title {
   margin-top: var(--space-4);
-  /* при увеличенном тексте заголовок не шире экрана: самое длинное слово ≈ 5,5 кегля */
-  font-size: min(var(--display-3), 15vw);
+  /* при увеличенном тексте заголовок не шире экрана: самое длинное слово ≈ 5,5 кегля;
+     рядом с портретом строка «ваш сильный ход» (≈ 6,7 кегля) помещается в колонку текста (cqi — от .hero__copy) */
+  font-size: min(var(--display-3), 15vw, 14.6cqi);
   text-wrap: balance;
 }
 .hero__line { display: inline; }
@@ -1053,129 +1030,137 @@ html:not(.js-ready) .queen-layer__label { display: none; }
   .hero__actions .btn { flex: 1 1 100%; }
 }
 
-/* Сцена: изометрическая доска и ферзь */
+/* Сцена: вырезанный портрет на переднем плане. За ним — контурное FERZ (декор, частично закрыто
+   головой и плечами: «текст за объектом»), бордовый «прожектор», шахматная фактура (.hero::before).
+   Фигура стоит на верхней линии цифр (.facts) — «пол» с латунным отрезком под ней.
+   Размеры сцены — в единицах контейнера (cqi = 1 % ширины портрета), пропорции не зависят от экрана.
+   Параллакс (--hero-p 0…1, пишет js/main.js): FERZ отстаёт (уходит вниз), фигура чуть растёт от «пола»,
+   прожектор опускается и гаснет. Только transform/opacity. Без JS и при reduced-motion --hero-p = 0 — статичная композиция. */
 .hero__stage {
   position: relative;
-  display: grid;
-  justify-items: center;
-  gap: var(--space-5);
-}
-.stage {
-  position: relative;
+  z-index: 0;
+  container-type: inline-size;
+  /* svh: при крупном шрифте браузера фигура не вырастает выше экрана
+     (первая строка — для браузеров без svh: иначе ширина auto и картинка встала бы в натуральные 720–960 px) */
   width: min(100%, 25rem);
-  /* прокрутка первого экрана: сцена чуть уходит вглубь и наклоняется (--hero-p 0…1) */
-  transform: perspective(900px) rotateX(calc(var(--hero-p) * 9deg));
-  scale: calc(1 - var(--hero-p) * 0.06);
-  transform-origin: 50% 70%;
+  width: min(100%, 25rem, 80svh);
+  justify-self: center;
+  align-self: end;
 }
-.stage__glow {
-  position: absolute;
-  inset: 4% 8% 18%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, var(--glow), transparent);
-  filter: blur(8px);
-  opacity: calc(1 - var(--hero-p) * 0.45);
-}
-.stage__art { position: relative; width: 100%; height: auto; overflow: visible; }
-.board__light { fill: var(--tile-light); }
-.board__dark { fill: var(--tile-dark); }
-.board__side--l1 { fill: var(--side-light-l); }
-.board__side--l2 { fill: var(--side-dark-l); }
-.board__side--r1 { fill: var(--side-light-r); }
-.board__side--r2 { fill: var(--side-dark-r); }
-.board__target { fill: var(--accent); }
-.board__route { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 3 5; stroke-linecap: round; opacity: 0.9; }
-.board__coords text { font-family: var(--font-text); font-size: 10px; font-weight: 600; fill: var(--fg-muted); text-anchor: middle; }
-.queen__shadow { fill: color-mix(in oklch, var(--brand-950) 45%, transparent); }
-.queen__body { fill: url(#g-queen); }
-.queen__ring, .queen__band { fill: url(#g-brass); }
-.queen__ball { fill: url(#g-ball); }
-.queen__sheen { fill: url(#g-sheen); }
-.gq-1 { stop-color: var(--q-1); }
-.gq-2 { stop-color: var(--q-2); }
-.gq-3 { stop-color: var(--q-3); }
-.gq-4 { stop-color: var(--q-4); }
-.gb-1 { stop-color: var(--accent-200); }
-.gb-2 { stop-color: var(--accent-400); }
-.gb-3 { stop-color: var(--accent-700); }
-.gs-1 { stop-color: #fff; stop-opacity: 0.5; }
-.gs-2 { stop-color: #fff; stop-opacity: 0.05; }
-.queen { transform-box: fill-box; }
-/* ферзь отрывается от доски и чуть клонится вперёд — «делает ход»; доска уходит вниз (параллакс слоёв) */
-.queen-rig {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  transform: translateY(calc(var(--hero-p) * -16px)) rotate(calc(var(--hero-p) * -5deg));
-}
-.board { translate: 0 calc(var(--hero-p) * 7px); }
-@media (prefers-reduced-motion: no-preference) {
-  .queen { animation: queen-float var(--dur-float) var(--ease-move) infinite; }
-  .queen__shadow { animation: shadow-float var(--dur-float) var(--ease-move) infinite; transform-box: fill-box; transform-origin: center; }
-}
-@keyframes queen-float {
-  0%, 100% { translate: 0 0; }
-  50% { translate: 0 -8px; }
-}
-@keyframes shadow-float {
-  0%, 100% { scale: 1; opacity: 1; }
-  50% { scale: 0.9; opacity: 0.75; }
-}
-
-/* Портрет: законченная композиция без фото, фото встаёт в .portrait__frame */
-.portrait {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  width: min(100%, 25rem);
-}
-.portrait__frame {
-  position: relative;
-  flex: none;
-  width: 88px;
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border: 1.5px solid var(--btn-edge);
-  border-radius: var(--r-md);
-  background:
-    linear-gradient(135deg, var(--brand-600), var(--brand-900));
-  box-shadow: 6px 6px 0 var(--plate), var(--shadow-1);
-}
-.portrait__frame::before {
+.hero__stage::after {
+  /* латунный отрезок «пола» под фигурой (поверх нижнего среза фото) */
   content: "";
   position: absolute;
-  inset: 0;
-  background: conic-gradient(color-mix(in oklch, var(--n-0) 9%, transparent) 25%, transparent 0 50%, color-mix(in oklch, var(--n-0) 9%, transparent) 0 75%, transparent 0) 0 0 / 22px 22px;
+  left: 4%;
+  right: 4%;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent) 18% 82%, transparent);
 }
-.portrait__mono {
-  position: relative;
+.hero__scene {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+  /* всё, что ниже «пола», срезано: диск-прожектор «садится» на линию цифр и не заходит под них */
+  clip-path: inset(-100vmax -100vmax 0 -100vmax);
+}
+.hero__scene::after {
+  /* тень-«пол» под фигурой */
+  content: "";
+  position: absolute;
+  left: -12%;
+  right: -12%;
+  bottom: 0;
+  height: 16cqi;
+  background: radial-gradient(50% 100% at 50% 100%, var(--hero-floor), transparent);
+}
+.hero__spot {
+  /* «прожектор»: бордовый диск с мягким краем и светлым центром + широкий ореол */
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 90cqi;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 38%, var(--hero-spot-core), transparent 55%),
+    radial-gradient(closest-side, var(--hero-spot) 0 93%, transparent 100%);
+  box-shadow: 0 0 0 4cqi var(--hero-halo), 0 0 0 9cqi color-mix(in oklch, var(--hero-halo) 50%, transparent);
+  /* опускается и гаснет при прокрутке (не растёт — не подходит к тексту и кнопкам) */
+  transform: translateY(calc(var(--hero-p) * 10cqi));
+  opacity: calc(1 - var(--hero-p) * 0.3);
+}
+.hero__ferz {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  translate: -50% 0;
   font-family: var(--font-display);
-  font-size: 2.6rem;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  color: var(--accent-300);
+  font-size: 64cqi;
+  line-height: 0.8;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--hero-ferz-fill);
+  -webkit-text-stroke: max(1.25px, 0.32cqi) var(--hero-ferz);
+  transform: translateY(calc(var(--hero-p) * 16cqi));
 }
-.portrait__corner {
-  position: absolute;
-  width: 14px; height: 14px;
-  border-color: var(--accent);
-  border-style: solid;
-}
-.portrait__corner--tl { top: 6px; left: 6px; border-width: 2px 0 0 2px; }
-.portrait__corner--br { bottom: 6px; right: 6px; border-width: 0 2px 2px 0; }
-.portrait__img {
-  position: absolute;
-  inset: 0;
+.portrait {
+  position: relative;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
-.portrait__frame:has(.portrait__img) .portrait__mono,
-.portrait__frame:has(.portrait__img)::before { display: none; }
-.portrait__cap { display: grid; gap: 0.15rem; }
-.portrait__name { font-weight: 650; font-size: var(--step-1); line-height: 1.2; }
-.portrait__meta { font-size: var(--step--1); color: var(--fg-muted); }
+.portrait__pic {
+  display: block;
+  transform-origin: 50% 100%;
+  transform: scale(calc(1 + var(--hero-p) * 0.05));
+  will-change: transform;
+}
+.portrait__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* мягкая тень отделяет светлую толстовку от светлого фона (растрируется один раз — слой с will-change) */
+  filter: drop-shadow(0 1.5cqi 4cqi var(--hero-shade));
+}
+/* Подпись-метка — плашка-титр у «пола»: на телефоне поверх нижнего левого угла кадра,
+   шире — слева от фигуры (не закрывает лицо и руки в карманах) */
+.portrait__cap {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  bottom: var(--space-4);
+  display: grid;
+  gap: 0.1rem;
+  max-width: 13rem;
+  padding: 0.5rem 0.85rem 0.55rem 0.8rem;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-xs);
+  box-shadow: 5px 5px 0 var(--plate), var(--shadow-1);
+}
+.portrait__name { font-weight: 650; font-size: var(--step-0); line-height: 1.25; }
+.portrait__meta { font-size: var(--step--1); line-height: 1.35; color: var(--fg-muted); }
+
+/* Крупный шрифт браузера на узком экране (сцена уже 17 кеглей): плашка не помещается рядом с фигурой
+   и закрыла бы лицо — встаёт над фотографией, фигура по-прежнему стоит на «полу» */
+@container (max-width: 17em) {
+  .portrait { display: flex; flex-direction: column-reverse; }
+  .portrait__cap { position: relative; left: auto; right: auto; bottom: auto; top: auto; max-width: none; margin-bottom: var(--space-4); }
+}
+
+/* Портрет «по пояс» (шире 600 px; та же граница, что у <source media> в index.html) */
+@media (min-width: 37.5em) {
+  .hero__stage { width: min(100% - 10rem, 26rem); width: min(100% - 10rem, 26rem, 56svh); justify-self: end; margin-right: clamp(0rem, 6vw - 2rem, 3rem); }
+  .hero__ferz { top: 10%; }
+  .hero__copy { padding-bottom: var(--space-8); }
+  .hero__spot { top: 38%; width: 104cqi; }
+  .portrait__cap { left: auto; right: calc(100% - 1.25rem); bottom: var(--space-5); width: max-content; max-width: 12rem; }
+}
 
 /* Цифры первого экрана */
 .facts {
@@ -1204,27 +1189,15 @@ html:not(.js-ready) .queen-layer__label { display: none; }
   .facts__item:last-child { border-right: 0; }
 }
 @media (min-width: 64em) {
-  .hero__grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); }
+  .hero::before {
+    -webkit-mask-image: radial-gradient(ellipse 45% 75% at 78% 55%, #000 0%, transparent 72%);
+    mask-image: radial-gradient(ellipse 45% 75% at 78% 55%, #000 0%, transparent 72%);
+  }
+  .hero__grid { grid-template-columns: minmax(0, 1fr) auto; }
+  .hero__copy { padding-bottom: var(--space-7); }
   .hero__line { display: block; }
   .facts { grid-column: 1 / -1; }
-  .hero__stage { justify-items: stretch; }
-  .stage { width: 100%; max-width: 30rem; justify-self: end; }
-  .portrait {
-    position: absolute;
-    left: -2.5rem;
-    top: 0;
-    width: auto;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-3);
-  }
-  .portrait__frame { width: 132px; }
-  .portrait__mono { font-size: 3.6rem; }
-  .portrait__cap { max-width: 10.5rem; }
-}
-@media (min-width: 64em) and (max-width: 79.99em) {
-  .portrait__frame { width: 104px; }
-  .portrait__mono { font-size: 2.9rem; }
+  .hero__stage { width: clamp(18rem, 4rem + 26vw, 28rem); justify-self: end; margin-right: 0; }
 }
 
 /* ---------- 13. Разделы-ходы ---------- */
@@ -1970,7 +1943,6 @@ html:not(.js-ready) .queen-layer__label { display: none; }
   .facts__item:nth-child(odd) { border-right: 0; }
   .facts__item:nth-child(even) { padding-left: 0; }
   .facts__num { font-size: min(var(--display-2), calc((100vw - 32px) / 3.4)); }
-  .portrait { flex-wrap: wrap; }
 
   .card { padding: 16px; }
   .card__piece { top: 12px; right: 12px; width: 40px; height: 40px; }
@@ -2023,8 +1995,9 @@ html:not(.js-ready) .queen-layer__label { display: none; }
     scroll-behavior: auto !important;
   }
   /* статичная композиция: JS при reduced-motion эти переменные не трогает, здесь — страховка */
-  .stage, .queen-rig, .board, .move-head__num, .move-head__square { transform: none; translate: none; scale: none; rotate: none; }
-  .move-head__num, .section-move::before, .stage__glow { opacity: 1; }
+  .move-head__num, .move-head__square { transform: none; translate: none; scale: none; rotate: none; }
+  .hero__ferz, .hero__spot, .portrait__pic { transform: none; }
+  .move-head__num, .section-move::before, .hero__spot { opacity: 1; }
 }
 /* Режим высокой контрастности (Windows): фоны принудительно сбрасываются —
    возвращаем то, что держалось только на background */
@@ -2034,9 +2007,12 @@ html:not(.js-ready) .queen-layer__label { display: none; }
   .qa__q::before,
   .qa__q::after { forced-color-adjust: none; background: CanvasText; }
   .move-head__num, .site-footer__word { color: CanvasText; -webkit-text-stroke: 0; }
+  /* FERZ за портретом — только контур: иначе режим заливает его сплошным CanvasText, и светлая фигура
+     сливается с буквами (прожектора-подложки в этом режиме нет) */
+  .hero__ferz { forced-color-adjust: none; color: transparent; -webkit-text-stroke-color: GrayText; }
 }
 @media print {
-  .site-header, .queen-layer, .move-rail, .hero__stage, .form, .copy-btn, .hero__word, .site-footer__word, .bot-cta, .to-top { display: none !important; }
+  .site-header, .queen-layer, .move-rail, .hero__stage, .form, .copy-btn, .site-footer__word, .bot-cta, .to-top { display: none !important; }
   .js.js-ready .rv, .js.js-ready .rv-in { opacity: 1 !important; translate: none !important; animation: none !important; }
   .scope-wine { background: none !important; color: #000 !important; }
   body { background: #fff; color: #000; }

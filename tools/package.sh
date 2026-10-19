@@ -9,10 +9,12 @@
 #   sh tools/package.sh --out DIR --no-zip   → только папка DIR (так её собирает tools/minify.sh)
 #
 # В пакет входят:  index.html, privacy.html, robots.txt, sitemap.xml, css/*.css, js/*.js,
-#                  assets/ (иконки, og-image, шрифты + лицензии OFL, скриншоты работ assets/works/*.avif|webp|jpg),
+#                  assets/ (иконки, og-image, шрифты + лицензии OFL, скриншоты работ assets/works/*.avif|webp|jpg,
+#                  портрет assets/portrait/portrait-*.avif|webp|png),
 #                  send.php и .htaccess (не для --static).
 # НЕ входят:       STATUS.md, ANALYTICS.md и другие *.md, .git, .gitignore, tools/, dist/, release/,
-#                  src-images/ (исходные PNG скриншотов — пересборка: sh tools/images.sh),
+#                  src-images/ (исходные PNG скриншотов и личное фото-оригинал — пересборка: sh tools/images.sh,
+#                  sh tools/portrait.sh),
 #                  _headers (кроме --static), send.config.example.php, send.config.php (секреты!), .DS_Store.
 # После выкладки на сервере создайте send.config.php (образец — send.config.example.php в исходниках),
 # лучше уровнем ВЫШЕ корня сайта: send.php ищет его там первым.
@@ -26,7 +28,7 @@ while [ $# -gt 0 ]; do
     --static) STATIC=1 ;;
     --no-zip) ZIP=0 ;;
     --out) shift; OUT="${1:?после --out укажите папку}"; [ -n "$OUT" ] || { echo "Пустой --out" >&2; exit 2; } ;;
-    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
     *) echo "Неизвестный параметр: $1" >&2; exit 2 ;;
   esac
   shift
@@ -71,6 +73,13 @@ cp "$ROOT"/css/*.css "$OUT/css/"
 cp "$ROOT"/js/*.js "$OUT/js/"
 for f in "$ROOT"/assets/*; do [ -f "$f" ] && cp "$f" "$OUT/assets/"; done
 cp "$ROOT"/assets/fonts/*.woff2 "$ROOT"/assets/fonts/*.txt "$OUT/assets/fonts/"
+# Портрет первого экрана: только готовые вырезки (tools/portrait.sh); оригинал фото лежит в src-images/portrait/ и сюда не идёт
+if [ -d "$ROOT/assets/portrait" ]; then
+  mkdir -p "$OUT/assets/portrait"
+  for f in "$ROOT"/assets/portrait/portrait-*.avif "$ROOT"/assets/portrait/portrait-*.webp "$ROOT"/assets/portrait/portrait-*.png; do
+    [ -f "$f" ] && cp "$f" "$OUT/assets/portrait/"
+  done
+fi
 # Скриншоты работ: только сжатые копии (tools/images.sh), без исходников и мусора вроде .DS_Store
 if [ -d "$ROOT/assets/works" ]; then
   (cd "$ROOT/assets" && find works -type f \( -name '*.avif' -o -name '*.webp' -o -name '*.jpg' \)) | while IFS= read -r f; do
@@ -88,7 +97,7 @@ fi
 [ "$MIN" -eq 1 ] && sh "$ROOT/tools/minify.sh" --in-place "$OUT"
 
 # Проверка: в пакете нет служебного
-BAD=$(cd "$OUT" && find . \( -name '*.md' -o -name '.git*' -o -name 'send.config*.php' -o -name '.DS_Store' -o -name 'tools' -o -name '*.sh' -o -name 'src-images' -o -size +1024k \) -print)
+BAD=$(cd "$OUT" && find . \( -name '*.md' -o -name '.git*' -o -name 'send.config*.php' -o -name '.DS_Store' -o -name 'tools' -o -name '*.sh' -o -name 'src-images' -o -iname '*.heic' -o -iname '*original*' -o -size +1024k \) -print)
 [ -n "$BAD" ] && { echo "В пакет попало лишнее: $BAD" >&2; exit 1; }
 
 echo "Пакет: $OUT"

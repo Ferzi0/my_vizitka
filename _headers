@@ -33,3 +33,5 @@
   Cache-Control: public, max-age=31536000, immutable
 /assets/works/*
   Cache-Control: public, max-age=604800
+/assets/portrait/*
+  Cache-Control: public, max-age=604800

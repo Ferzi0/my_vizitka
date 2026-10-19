@@ -175,7 +175,6 @@
 
     <!-- ============ ПЕРВЫЙ ЭКРАН ============ -->
     <section class="hero section-move" id="hero" data-move="1" data-square="d1" data-hint="Кто это?" aria-labelledby="hero-title">
-      <span class="hero__word" aria-hidden="true" lang="en">Ferz</span>
       <div class="wrap hero__grid">
         <div class="hero__copy">
           <p class="eyebrow"><span class="eyebrow__dot" aria-hidden="true"></span>Эдуард Торгашов · разработчик из&nbsp;Челябинска</p>
@@ -191,82 +190,24 @@
           </div>
         </div>
 
+        <!-- Портрет: «по пояс» (шире 600 px) и «по грудь» (телефон), вырезан из фото без фона.
+             Пересборка из оригинала (src-images/portrait/, на сайт и в git не идёт): sh tools/portrait.sh.
+             Фигура стоит на верхней линии цифр (.facts); за ней — контурное FERZ, «прожектор» и шахматная фактура
+             (.hero__scene, декор). При прокрутке слои расходятся (--hero-p из js/main.js), без JS — статично. -->
         <div class="hero__stage">
-          <div class="stage" aria-hidden="true">
-            <span class="stage__glow"></span>
-            <svg class="stage__art" viewBox="40 66 320 356" width="320" height="356" focusable="false">
-              <defs>
-                <linearGradient id="g-queen" x1="0" x2="1" y1="0" y2="0">
-                  <stop class="gq-1" offset="0"/>
-                  <stop class="gq-2" offset="0.38"/>
-                  <stop class="gq-3" offset="0.72"/>
-                  <stop class="gq-4" offset="1"/>
-                </linearGradient>
-                <linearGradient id="g-brass" x1="0" x2="1" y1="0" y2="0">
-                  <stop class="gb-1" offset="0"/>
-                  <stop class="gb-2" offset="0.45"/>
-                  <stop class="gb-3" offset="1"/>
-                </linearGradient>
-                <radialGradient id="g-ball" cx="0.35" cy="0.3" r="0.75">
-                  <stop class="gb-1" offset="0"/>
-                  <stop class="gb-2" offset="0.5"/>
-                  <stop class="gb-3" offset="1"/>
-                </radialGradient>
-                <linearGradient id="g-sheen" x1="0" x2="1" y1="0" y2="0">
-                  <stop class="gs-1" offset="0"/>
-                  <stop class="gs-2" offset="1"/>
-                </linearGradient>
-                <filter id="f-blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
-              </defs>
-
-              <!-- Доска 6×6 в изометрии -->
-              <g class="board">
-                <path class="board__side board__side--l1" d="M80 334l24 12v18l-24 -12zM128 358l24 12v18l-24 -12zM176 382l24 12v18l-24 -12z"/>
-                <path class="board__side board__side--l2" d="M56 322l24 12v18l-24 -12zM104 346l24 12v18l-24 -12zM152 370l24 12v18l-24 -12z"/>
-                <path class="board__side board__side--r1" d="M200 394l24 -12v18l-24 12zM248 370l24 -12v18l-24 12zM296 346l24 -12v18l-24 12z"/>
-                <path class="board__side board__side--r2" d="M224 382l24 -12v18l-24 12zM272 358l24 -12v18l-24 12zM320 334l24 -12v18l-24 12z"/>
-                <path class="board__light" d="M200 250l24 12l-24 12l-24 -12zM248 274l24 12l-24 12l-24 -12zM296 298l24 12l-24 12l-24 -12zM200 274l24 12l-24 12l-24 -12zM248 298l24 12l-24 12l-24 -12zM296 322l24 12l-24 12l-24 -12zM152 274l24 12l-24 12l-24 -12zM200 298l24 12l-24 12l-24 -12zM248 322l24 12l-24 12l-24 -12zM152 298l24 12l-24 12l-24 -12zM248 346l24 12l-24 12l-24 -12zM104 298l24 12l-24 12l-24 -12zM152 322l24 12l-24 12l-24 -12zM200 346l24 12l-24 12l-24 -12zM104 322l24 12l-24 12l-24 -12zM152 346l24 12l-24 12l-24 -12zM200 370l24 12l-24 12l-24 -12z"/>
-                <path class="board__dark" d="M224 262l24 12l-24 12l-24 -12zM272 286l24 12l-24 12l-24 -12zM320 310l24 12l-24 12l-24 -12zM176 262l24 12l-24 12l-24 -12zM224 286l24 12l-24 12l-24 -12zM272 310l24 12l-24 12l-24 -12zM176 286l24 12l-24 12l-24 -12zM224 310l24 12l-24 12l-24 -12zM272 334l24 12l-24 12l-24 -12zM128 286l24 12l-24 12l-24 -12zM176 310l24 12l-24 12l-24 -12zM224 334l24 12l-24 12l-24 -12zM128 310l24 12l-24 12l-24 -12zM176 334l24 12l-24 12l-24 -12zM224 358l24 12l-24 12l-24 -12zM80 310l24 12l-24 12l-24 -12zM128 334l24 12l-24 12l-24 -12zM176 358l24 12l-24 12l-24 -12z"/>
-                <path class="board__target" d="M200 322l24 12l-24 12l-24 -12z"/>
-                <path class="board__route" d="M200 334 L200 298 M200 334 L272 298"/>
-                <g class="board__coords">
-                  <text x="66" y="356">6</text><text x="90" y="368">5</text><text x="114" y="380">4</text><text x="138" y="392">3</text><text x="162" y="404">2</text><text x="186" y="416">1</text>
-                  <text x="214" y="416">a</text><text x="238" y="404">b</text><text x="262" y="392">c</text><text x="286" y="380">d</text><text x="310" y="368">e</text><text x="334" y="356">f</text>
-                </g>
-              </g>
-
-              <!-- Ферзь: силуэт + объём градиентами -->
-              <ellipse class="queen__shadow" cx="200" cy="338" rx="58" ry="14" filter="url(#f-blur)"/>
-              <g class="queen-rig"><!-- приподнимается и наклоняется при прокрутке первого экрана -->
-              <g class="queen" transform="translate(115 79) scale(0.85)">
-                <path class="queen__body" d="M28 300C28 284 44 274 62 270h76c18 4 34 14 34 30 0 10-32 16-72 16s-72-6-72-16z"/>
-                <rect class="queen__ring" x="44" y="252" width="112" height="20" rx="10"/>
-                <path class="queen__body" d="M58 254c6-34 24-60 28-98h28c4 38 22 64 28 98z"/>
-                <rect class="queen__ring" x="72" y="140" width="56" height="18" rx="9"/>
-                <path class="queen__body" d="M80 142c-8-20-20-40-26-60h92c-6 20-18 40-26 60z"/>
-                <rect class="queen__band" x="48" y="74" width="104" height="14" rx="7"/>
-                <path class="queen__body" d="M50 78l6-30 18 22 12-28 14 24 14-24 12 28 18-22 6 30z"/>
-                <path class="queen__sheen" d="M66 298c-6-4-8-10-2-16h12c-4 6-4 12 0 18zM70 250c6-30 14-56 18-92h8c-4 36-10 64-14 92zM60 84c6 18 14 36 22 56h8c-6-20-12-38-16-56z"/>
-                <circle class="queen__ball" cx="56" cy="44" r="7"/>
-                <circle class="queen__ball" cx="86" cy="38" r="7.5"/>
-                <circle class="queen__ball" cx="114" cy="38" r="7.5"/>
-                <circle class="queen__ball" cx="144" cy="44" r="7"/>
-                <path class="queen__band" d="M86 68c2-18 8-28 14-32 6 4 12 14 14 32z"/>
-                <circle class="queen__ball queen__ball--top" cx="100" cy="24" r="10"/>
-              </g>
-              </g>
-            </svg>
+          <div class="hero__scene" aria-hidden="true">
+            <span class="hero__spot"></span>
+            <span class="hero__ferz" lang="en">Ferz</span>
           </div>
-
-          <!-- Место под фото автора. Чтобы вставить фото: положите файл в assets/ и добавьте внутрь .portrait__frame
-               <img class="portrait__img" src="assets/eduard.webp" width="480" height="480" alt="Эдуард Торгашов">
-               — монограмма скроется сама (правило .portrait__frame:has(.portrait__img) в main.css). -->
           <figure class="portrait">
-            <div class="portrait__frame">
-              <span class="portrait__mono" aria-hidden="true">ЭТ</span>
-              <span class="portrait__corner portrait__corner--tl" aria-hidden="true"></span>
-              <span class="portrait__corner portrait__corner--br" aria-hidden="true"></span>
-            </div>
+            <picture class="portrait__pic">
+              <source media="(max-width: 37.49em)" type="image/avif" srcset="assets/portrait/portrait-chest-360.avif 360w, assets/portrait/portrait-chest-720.avif 720w" sizes="min(100vw - 2rem, 25rem)" width="720" height="667">
+              <source media="(max-width: 37.49em)" type="image/webp" srcset="assets/portrait/portrait-chest-360.webp 360w, assets/portrait/portrait-chest-720.webp 720w" sizes="min(100vw - 2rem, 25rem)" width="720" height="667">
+              <source media="(max-width: 37.49em)" srcset="assets/portrait/portrait-chest-360.png 360w, assets/portrait/portrait-chest-720.png 720w" sizes="min(100vw - 2rem, 25rem)" width="720" height="667">
+              <source type="image/avif" srcset="assets/portrait/portrait-waist-480.avif 480w, assets/portrait/portrait-waist-960.avif 960w" sizes="(min-width: 64em) clamp(18rem, 4rem + 26vw, 28rem), min(100vw - 10rem, 26rem, 56vh)" width="960" height="1280">
+              <source type="image/webp" srcset="assets/portrait/portrait-waist-480.webp 480w, assets/portrait/portrait-waist-960.webp 960w" sizes="(min-width: 64em) clamp(18rem, 4rem + 26vw, 28rem), min(100vw - 10rem, 26rem, 56vh)" width="960" height="1280">
+              <img class="portrait__img" src="assets/portrait/portrait-waist-480.png" srcset="assets/portrait/portrait-waist-480.png 480w, assets/portrait/portrait-waist-960.png 960w" sizes="(min-width: 64em) clamp(18rem, 4rem + 26vw, 28rem), min(100vw - 10rem, 26rem, 56vh)" width="960" height="1280" alt="Эдуард Торгашов, портрет" fetchpriority="high">
+            </picture>
             <figcaption class="portrait__cap">
               <span class="portrait__name">Эдуард Торгашов</span>
               <span class="portrait__meta"><span lang="en">Ferz</span> · Челябинск · удалённо</span>
@@ -708,7 +649,7 @@
     <div class="wrap site-footer__inner">
       <div class="site-footer__brand">
         <p class="site-footer__name">Эдуард Торгашов</p>
-        <p class="site-footer__role">Сайты, Telegram-боты и&nbsp;веб-сервисы  Челябинск, удалённо</p>
+        <p class="site-footer__role">Сайты, Telegram-боты и&nbsp;веб-сервисы · Челябинск, удалённо</p>
       </div>
       <ul class="site-footer__links" role="list">
         <li><a href="mailto:eduardtorgasov894@gmail.com">eduardtorgasov894@gmail.com</a></li>
