@@ -542,6 +542,21 @@
     else window.addEventListener('load', start);
   }
 
+  /* ---------- Кнопки заявки в карточках услуг: выбирают тип проекта в форме ---------- */
+  function initOrderButtons() {
+    var form = document.getElementById('brief-form');
+    if (!form) return;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-order]'), function (btn) {
+      btn.addEventListener('click', function () {
+        var want = btn.getAttribute('data-order');
+        Array.prototype.forEach.call(form.querySelectorAll('input[name="type"]'), function (r) {
+          if (r.value === want) r.checked = true;
+        });
+        track('order-' + want);
+      });
+    });
+  }
+
   /* ---------- Копирование адреса ---------- */
   function initCopy() {
     var status = document.querySelector('.copy-status');
@@ -850,6 +865,7 @@
     safe('reveal', initReveal);
     safe('copy', initCopy);
     safe('form', initForm);
+    safe('order', initOrderButtons);
     safe('track', initTrackLinks);
     safe('year', initYear);
   }

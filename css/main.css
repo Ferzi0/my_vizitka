@@ -1350,6 +1350,7 @@ html:not(.js-ready) .queen-layer__label { display: none; }
 .card__price--text .display { font-size: var(--display-1); overflow-wrap: anywhere; }
 .card__price .rub { font-size: var(--step-2); vertical-align: 0.1em; margin-left: 0.1em; }
 .card__from { font-weight: 600; font-size: var(--step-0); color: var(--fg); margin-right: 0.15em; }
+.card__cta { align-self: flex-start; margin-top: var(--space-4); }
 .card__time {
   margin-top: var(--space-3);
   padding-top: var(--space-3);
