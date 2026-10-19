@@ -4,6 +4,7 @@
   "private": true,
   "description": "Сайт-визитка Эдуарда Торгашова (Ferz): статический сайт, сервер нужен только для просмотра",
   "scripts": {
-    "start": "npx --yes http-server@14.1.1 . -a 0.0.0.0 -p 8080 -c-1 --silent"
+    "start": "sh tools/dev/php-server.sh",
+    "mail": "sh -c 'ls -1t .dev-mail/*.txt 2>/dev/null | head -1 | xargs -I{} cat {} || echo \"Писем пока нет\"'"
   }
 }

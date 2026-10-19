@@ -725,7 +725,9 @@
       }).then(null, function (err) { clearTimeout(timer); throw err; });
     }
 
-    function mailtoFallback(data) {
+    function mailtoFallback(data, reason) {
+      // Причина запасного пути видна в консоли браузера (без данных заявки): помогает понять, что не так с сервером.
+      if (window.console && console.info) console.info('[form] отправка через сервер не удалась, открываю письмо:', reason || 'unknown');
       var subject = 'Заявка с сайта: ' + data.type;
       var body = [
         'Имя: ' + data.name,
@@ -824,10 +826,10 @@
             say('С этого адреса уже было несколько заявок подряд. Попробуйте ещё раз через ' + min + ' мин. или напишите напрямую на ' + MAIL + '.', 'is-err');
             return;
           }
-          mailtoFallback(data);
-        }, function () {
+          mailtoFallback(data, 'HTTP ' + r.status + (r.body && r.body.error ? ' ' + String(r.body.error).slice(0, 40) : ''));
+        }, function (err) {
           done();
-          mailtoFallback(data);
+          mailtoFallback(data, err && err.name === 'AbortError' ? 'timeout' : (err && err.message) || 'network');
         });
     });
   }

@@ -11,3 +11,6 @@ send.config.php
 # сборки для выкладки (tools/package.sh, tools/minify.sh) — пересобираются из исходников
 dist/
 release/
+
+# Локальная почтовая ловушка (tools/dev)
+.dev-mail/
