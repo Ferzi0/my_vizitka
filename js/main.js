@@ -824,7 +824,7 @@
             markSent();
             track('form_success');
             form.reset();
-            say('Спасибо, заявка отправлена. Отвечу в течение суток на указанный контакт.', 'is-ok');
+            say('Спасибо, заявка отправлена. Отвечу в течение двух часов на указанный контакт.', 'is-ok');
             return;
           }
           if (r.status === 422 && r.body.fields && typeof r.body.fields === 'object') {
