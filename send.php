@@ -318,6 +318,7 @@ $cfg = $config + [
     'salt' => '',
     'trust_proxy' => false,
     'smtp' => null,
+    'debug' => false,
 ];
 
 /* ---------- 3. Откуда пришёл запрос (защита от отправки с чужих сайтов) ---------- */
@@ -584,7 +585,11 @@ if ($smtp) {
 if (!$sent) {
     ferz_rate_close($rateHandle, $rateFile);
     ferz_log($smtp ? 'smtp_failed' : 'mail_failed');
-    ferz_respond(502, ['ok' => false, 'error' => 'unavailable']);
+    $fail = ['ok' => false, 'error' => 'unavailable'];
+    if (!empty($cfg['debug'])) {
+        $fail['stage'] = $smtp ? $smtpFail : 'mail_failed'; // только код этапа; включать на время настройки
+    }
+    ferz_respond(502, $fail);
 }
 
 if ($rateHandle) {
