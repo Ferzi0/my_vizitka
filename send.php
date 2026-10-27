@@ -1,6 +1,7 @@
 <?php
 /**
- * Ferz — приём заявки с сайта и отправка письма через mail().
+ * Ferz — приём заявки с сайта и отправка письма: через SMTP (если в send.config.php заполнен блок 'smtp')
+ * или через mail() хостинга.
  *
  * Для обычного хостинга с PHP 7.4+ (Apache или nginx + PHP-FPM). Без базы данных и библиотек.
  * Настройки — в send.config.php (пример: send.config.example.php). Лучше положить его
@@ -143,6 +144,142 @@ function ferz_is_email(string $s): bool
     return strpbrk($s, "\r\n") === false && filter_var($s, FILTER_VALIDATE_EMAIL) !== false;
 }
 
+/** Ответ SMTP-сервера: код и текст (многострочные ответы «250-…» читаются до последней строки «250 …»
+ *  или «250» без текста — по RFC 5321 текст необязателен). null — обрыв, таймаут, мусор.
+ *  $deadline — общий срок на весь разговор (microtime): медленный сервер, который присылает по строчке
+ *  раз в несколько секунд, не держит процесс PHP и блокировку лимита дольше него. */
+function ferz_smtp_read($fp, float $deadline): ?array
+{
+    $text = '';
+    $line = '';
+    for ($i = 0; $i < 100; $i++) {
+        $left = $deadline - microtime(true);
+        if ($left <= 0) {
+            return null;
+        }
+        stream_set_timeout($fp, (int) $left, (int) (($left - (int) $left) * 1000000));
+        $part = fgets($fp, 1024);
+        if ($part === false) {
+            return null;
+        }
+        // Длинная строка приходит кусками: разбираем только целую, иначе хвост примем за следующий ответ
+        $line .= $part;
+        if (substr($line, -1) !== "\n") {
+            if (strlen($line) > 4096) {
+                return null;
+            }
+            continue;
+        }
+        $text .= $line;
+        if (!preg_match('/^(\d{3})([ \-\r\n])/', $line, $m)) {
+            return null; // не ответ SMTP — дальше ждать нечего
+        }
+        if ($m[2] !== '-') {
+            return [(int) $m[1], $text];
+        }
+        $line = '';
+    }
+    return null;
+}
+
+/** Команда и ожидаемый код ответа. true — сервер ответил ожидаемым кодом. */
+function ferz_smtp_cmd($fp, string $cmd, array $ok, float $deadline): bool
+{
+    if ($cmd !== '' && @fwrite($fp, $cmd . "\r\n") === false) {
+        return false;
+    }
+    $r = ferz_smtp_read($fp, $deadline);
+    return $r !== null && in_array($r[0], $ok, true);
+}
+
+/**
+ * Отправка письма по SMTP с авторизацией (AUTH LOGIN) — без библиотек.
+ * secure: 'ssl' (порт 465), 'tls' (STARTTLS, порт 587); 'none' — только для проверки на своём компьютере.
+ * Сертификат сервера проверяется. Возвращает '' при успехе, иначе код этапа (без паролей и данных заявки).
+ */
+function ferz_smtp_send(array $smtp, string $from, string $to, array $headers, string $body): string
+{
+    // На части хостингов сетевые функции отключены (в PHP 8 вызов отключённой — фатальная ошибка)
+    if (!function_exists('stream_socket_client') || !function_exists('stream_socket_enable_crypto')) {
+        return 'smtp_functions_disabled';
+    }
+    $host = (string) ($smtp['host'] ?? '');
+    $secure = (string) ($smtp['secure'] ?? 'ssl');
+    $port = (int) ($smtp['port'] ?? ($secure === 'tls' ? 587 : ($secure === 'none' ? 25 : 465)));
+    $user = (string) ($smtp['user'] ?? '');
+    $pass = (string) ($smtp['pass'] ?? '');
+    $helo = preg_replace('/[^a-z0-9.\-]/', '', strtolower((string) ($smtp['helo'] ?? 'localhost'))) ?: 'localhost';
+    if (preg_match('/[\r\n\0]/', $host . $user . $pass . $from . $to) || !preg_match('/^[a-z0-9.\-]+$/i', $host)) {
+        return 'smtp_bad_config';
+    }
+    if (!in_array($secure, ['ssl', 'tls', 'none'], true)
+        || ($secure === 'none' && !in_array($host, ['127.0.0.1', 'localhost'], true))) {
+        return 'smtp_bad_config'; // пароль по открытому каналу наружу не отправляем
+    }
+    // Весь разговор вместе с подключением — не дольше 20 секунд: меньше обычных max_execution_time (30 с)
+    // и таймаута веб-сервера, иначе посетитель получит не JSON, а обрыв, хотя письмо, возможно, ушло
+    $deadline = microtime(true) + 20;
+    $ctx = stream_context_create(['ssl' => ['verify_peer' => true, 'verify_peer_name' => true, 'peer_name' => $host]]);
+    $fp = @stream_socket_client(($secure === 'ssl' ? 'ssl://' : 'tcp://') . $host . ':' . $port, $errno, $errstr, 10, STREAM_CLIENT_CONNECT, $ctx);
+    if (!$fp) {
+        return 'smtp_connect';
+    }
+    $stage = 'smtp_greeting';
+    $done = false;
+    do {
+        if (!ferz_smtp_cmd($fp, '', [220], $deadline)) {
+            break;
+        }
+        $stage = 'smtp_ehlo';
+        if (!ferz_smtp_cmd($fp, 'EHLO ' . $helo, [250], $deadline)) {
+            break;
+        }
+        if ($secure === 'tls') {
+            $stage = 'smtp_starttls';
+            if (!ferz_smtp_cmd($fp, 'STARTTLS', [220], $deadline)) {
+                break;
+            }
+            // Данные, пришедшие до рукопожатия открытым текстом, иначе читались бы как ответы из шифрованного канала
+            $meta = stream_get_meta_data($fp);
+            if (!empty($meta['unread_bytes']) || !@stream_socket_enable_crypto($fp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                break;
+            }
+            if (!ferz_smtp_cmd($fp, 'EHLO ' . $helo, [250], $deadline)) {
+                break;
+            }
+        }
+        $stage = 'smtp_auth';
+        if (!ferz_smtp_cmd($fp, 'AUTH LOGIN', [334], $deadline)
+            || !ferz_smtp_cmd($fp, base64_encode($user), [334], $deadline)
+            || !ferz_smtp_cmd($fp, base64_encode($pass), [235], $deadline)) {
+            break;
+        }
+        $stage = 'smtp_mail_from';
+        if (!ferz_smtp_cmd($fp, 'MAIL FROM:<' . $from . '>', [250], $deadline)) {
+            break;
+        }
+        $stage = 'smtp_rcpt';
+        if (!ferz_smtp_cmd($fp, 'RCPT TO:<' . $to . '>', [250, 251], $deadline)) {
+            break;
+        }
+        $stage = 'smtp_data';
+        if (!ferz_smtp_cmd($fp, 'DATA', [354], $deadline)) {
+            break;
+        }
+        $stage = 'smtp_body';
+        $msg = implode("\r\n", $headers) . "\r\n\r\n" . $body;
+        $msg = preg_replace('/^\./m', '..', str_replace(["\r\n", "\r", "\n"], "\n", $msg));
+        $msg = str_replace("\n", "\r\n", (string) $msg);
+        if (@fwrite($fp, $msg . "\r\n.\r\n") === false || !ferz_smtp_cmd($fp, '', [250], $deadline)) {
+            break;
+        }
+        $done = true;
+    } while (false);
+    @fwrite($fp, "QUIT\r\n");
+    fclose($fp);
+    return $done ? '' : $stage;
+}
+
 /* ---------- 1. Метод ---------- */
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     ferz_respond(405, ['ok' => false, 'error' => 'method_not_allowed'], ['Allow: POST']);
@@ -156,7 +293,14 @@ foreach ([dirname(__DIR__) . '/send.config.php', __DIR__ . '/send.config.php'] a
         break;
     }
 }
-if (!function_exists('mail')) {
+// SMTP — только если заполнены сервер, логин и пароль; иначе письмо уходит через mail(), как раньше
+$smtp = is_array($config) && is_array($config['smtp'] ?? null)
+    && !empty($config['smtp']['host']) && !empty($config['smtp']['user']) && !empty($config['smtp']['pass'])
+    ? $config['smtp'] : null;
+if (!$smtp && !empty($config['smtp'])) {
+    ferz_log('smtp_config_incomplete');
+}
+if (!function_exists('mail') && !$smtp) {
     ferz_log('mail_function_disabled'); // хостинг отключил mail() — сайт откроет mailto:
     ferz_respond(503, ['ok' => false, 'error' => 'unavailable']);
 }
@@ -173,6 +317,7 @@ $cfg = $config + [
     'rate_dir' => '',
     'salt' => '',
     'trust_proxy' => false,
+    'smtp' => null,
 ];
 
 /* ---------- 3. Откуда пришёл запрос (защита от отправки с чужих сайтов) ---------- */
@@ -393,6 +538,9 @@ $body = implode("\r\n", [
 ]);
 
 $from = is_string($cfg['from']) && ferz_is_email($cfg['from']) ? $cfg['from'] : '';
+if ($from === '' && $smtp && ferz_is_email((string) $smtp['user'])) {
+    $from = (string) $smtp['user']; // большинство SMTP-серверов принимают только адрес своего ящика
+}
 if ($from === '' && $siteHost !== '' && strpos($siteHost, '.') !== false) {
     $from = 'no-reply@' . $siteHost;
 }
@@ -415,13 +563,27 @@ if (is_string($cfg['envelope_from']) && preg_match('/^[A-Za-z0-9._%+-]+@[A-Za-z0
     $params = '-f' . $cfg['envelope_from'];
 }
 
-$sent = $params !== ''
-    ? mail($cfg['to'], $subject, chunk_split(base64_encode($body)), implode("\r\n", $headers), $params)
-    : mail($cfg['to'], $subject, chunk_split(base64_encode($body)), implode("\r\n", $headers));
+if ($smtp) {
+    $smtpHeaders = array_merge([
+        'Date: ' . date('r'),
+        'Message-ID: <' . bin2hex(random_bytes(12)) . '@' . ($siteHost !== '' ? $siteHost : 'localhost') . '>',
+        'To: ' . $cfg['to'],
+        'Subject: ' . $subject,
+    ], $headers);
+    $smtpFail = ferz_smtp_send($smtp, $from, $cfg['to'], $smtpHeaders, chunk_split(base64_encode($body)));
+    $sent = $smtpFail === '';
+    if (!$sent) {
+        ferz_log($smtpFail);
+    }
+} else {
+    $sent = $params !== ''
+        ? mail($cfg['to'], $subject, chunk_split(base64_encode($body)), implode("\r\n", $headers), $params)
+        : mail($cfg['to'], $subject, chunk_split(base64_encode($body)), implode("\r\n", $headers));
+}
 
 if (!$sent) {
     ferz_rate_close($rateHandle, $rateFile);
-    ferz_log('mail_failed');
+    ferz_log($smtp ? 'smtp_failed' : 'mail_failed');
     ferz_respond(502, ['ok' => false, 'error' => 'unavailable']);
 }
 
