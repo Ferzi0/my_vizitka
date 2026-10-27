@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-# [ЗАПОЛНИТЬ: домен] example.com — заглушка (замена: tools/set-domain.sh)
-Sitemap: https://example.com/sitemap.xml
+# Домен: cj168058.tw1.ru (замена: tools/set-domain.sh)
+Sitemap: https://cj168058.tw1.ru/sitemap.xml

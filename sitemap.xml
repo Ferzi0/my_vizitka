@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- [ЗАПОЛНИТЬ: домен] example.com — заглушка (замена: tools/set-domain.sh) -->
+<!-- Домен: cj168058.tw1.ru (замена: tools/set-domain.sh) -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://example.com/</loc>
+    <loc>https://cj168058.tw1.ru/</loc>
     <lastmod>2026-10-16</lastmod>
   </url>
   <url>
-    <loc>https://example.com/privacy.html</loc>
+    <loc>https://cj168058.tw1.ru/privacy.html</loc>
     <lastmod>2026-10-16</lastmod>
   </url>
 </urlset>
