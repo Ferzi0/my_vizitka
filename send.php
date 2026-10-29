@@ -220,9 +220,19 @@ function ferz_smtp_send(array $smtp, string $from, string $to, array $headers, s
     // и таймаута веб-сервера, иначе посетитель получит не JSON, а обрыв, хотя письмо, возможно, ушло
     $deadline = microtime(true) + 20;
     $ctx = stream_context_create(['ssl' => ['verify_peer' => true, 'verify_peer_name' => true, 'peer_name' => $host]]);
-    $fp = @stream_socket_client(($secure === 'ssl' ? 'ssl://' : 'tcp://') . $host . ':' . $port, $errno, $errstr, 10, STREAM_CLIENT_CONNECT, $ctx);
+    // На части хостингов нет исходящего IPv6 (ошибка 99), а имя с AAAA-записью пробуется первым: идём на IPv4-адрес,
+    // имя для проверки сертификата остаётся прежним (peer_name)
+    $target = $host;
+    if (!filter_var($host, FILTER_VALIDATE_IP)) {
+        $v4 = gethostbyname($host);
+        if ($v4 !== $host && filter_var($v4, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $target = $v4;
+        }
+    }
+    $fp = @stream_socket_client(($secure === 'ssl' ? 'ssl://' : 'tcp://') . $target . ':' . $port, $errno, $errstr, 10, STREAM_CLIENT_CONNECT, $ctx);
     if (!$fp) {
-        return 'smtp_connect';
+        $why = trim(preg_replace('/[^\x20-\x7E]+/', ' ', (string) $errstr));
+        return 'smtp_connect:' . (int) $errno . ($why !== '' ? ' ' . substr($why, 0, 120) : ''); // причина сокета: без паролей
     }
     $stage = 'smtp_greeting';
     $done = false;
@@ -280,6 +290,41 @@ function ferz_smtp_send(array $smtp, string $from, string $to, array $headers, s
     return $done ? '' : $stage;
 }
 
+/* Отправка заявки в Telegram через Bot API (обычный HTTPS, порт 443): запасной путь, когда хостинг закрыл исходящий SMTP.
+   Возвращает '' при успехе или код этапа без токена. */
+function ferz_telegram_send(array $tg, string $text): string
+{
+    $token = (string) ($tg['token'] ?? '');
+    $chat = (string) ($tg['chat_id'] ?? '');
+    $api = (string) ($tg['api'] ?? 'https://api.telegram.org');
+    if (!preg_match('/^\d{5,}:[A-Za-z0-9_-]{20,}$/', $token) || !preg_match('/^-?\d{3,}$/', $chat) || !preg_match('#^https?://[a-z0-9.:\-]+$#i', $api)) {
+        return 'tg_bad_config';
+    }
+    if (!function_exists('curl_init')) {
+        return 'tg_no_curl';
+    }
+    $ch = curl_init($api . '/bot' . $token . '/sendMessage');
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => ['chat_id' => $chat, 'text' => $text, 'disable_web_page_preview' => 'true'],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 6,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+    ]);
+    $out = curl_exec($ch);
+    $errno = curl_errno($ch);
+    $http = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    if ($out === false) {
+        return 'tg_connect:' . $errno; // 6 — не нашёл имя, 7 — отказ в соединении, 28 — таймаут, 60 — сертификат
+    }
+    $json = json_decode((string) $out, true);
+    return $http === 200 && is_array($json) && !empty($json['ok']) ? '' : 'tg_http_' . $http;
+}
+
 /* ---------- 1. Метод ---------- */
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     ferz_respond(405, ['ok' => false, 'error' => 'method_not_allowed'], ['Allow: POST']);
@@ -287,9 +332,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 
 /* ---------- 2. Настройки ---------- */
 $config = null;
+$configSource = 'none';
 foreach ([dirname(__DIR__) . '/send.config.php', __DIR__ . '/send.config.php'] as $file) {
     if (is_file($file) && is_readable($file)) {
         $config = require $file;
+        $configSource = $file === __DIR__ . '/send.config.php' ? 'local' : 'parent';
         break;
     }
 }
@@ -318,6 +365,7 @@ $cfg = $config + [
     'salt' => '',
     'trust_proxy' => false,
     'smtp' => null,
+    'telegram' => null,
     'debug' => false,
 ];
 
@@ -527,6 +575,7 @@ if ($errors) {
 /* ---------- 8. Письмо ---------- */
 $siteHost = preg_replace('/[^a-z0-9.\-]/', '', explode(':', $host)[0]);
 $subject = ferz_header_text('Заявка с сайта: ' . $type);
+$subjectPlain = 'Заявка с сайта: ' . $type;
 $body = implode("\r\n", [
     'Имя: ' . $name,
     'Контакт для ответа: ' . $contact,
@@ -564,7 +613,20 @@ if (is_string($cfg['envelope_from']) && preg_match('/^[A-Za-z0-9._%+-]+@[A-Za-z0
     $params = '-f' . $cfg['envelope_from'];
 }
 
-if ($smtp) {
+$tg = is_array($cfg['telegram']) && !empty($cfg['telegram']['token']) && !empty($cfg['telegram']['chat_id']) ? $cfg['telegram'] : null;
+$sent = false;
+$fails = [];
+if ($tg) {
+    $tgText = $subjectPlain . "\n\n" . str_replace("\r\n", "\n", $body);
+    $tgText = preg_match('/^.{0,3900}/us', $tgText, $cut) ? $cut[0] : '';
+    $tgFail = ferz_telegram_send($tg, $tgText);
+    $sent = $tgFail === '';
+    if (!$sent) {
+        $fails[] = $tgFail;
+        ferz_log($tgFail);
+    }
+}
+if (!$sent && $smtp) {
     $smtpHeaders = array_merge([
         'Date: ' . date('r'),
         'Message-ID: <' . bin2hex(random_bytes(12)) . '@' . ($siteHost !== '' ? $siteHost : 'localhost') . '>',
@@ -574,20 +636,26 @@ if ($smtp) {
     $smtpFail = ferz_smtp_send($smtp, $from, $cfg['to'], $smtpHeaders, chunk_split(base64_encode($body)));
     $sent = $smtpFail === '';
     if (!$sent) {
+        $fails[] = $smtpFail;
         ferz_log($smtpFail);
     }
-} else {
+} elseif (!$sent && !$tg) {
     $sent = $params !== ''
         ? mail($cfg['to'], $subject, chunk_split(base64_encode($body)), implode("\r\n", $headers), $params)
         : mail($cfg['to'], $subject, chunk_split(base64_encode($body)), implode("\r\n", $headers));
+    if (!$sent) {
+        $fails[] = 'mail_failed';
+    }
 }
 
 if (!$sent) {
     ferz_rate_close($rateHandle, $rateFile);
-    ferz_log($smtp ? 'smtp_failed' : 'mail_failed');
+    ferz_log('send_failed');
     $fail = ['ok' => false, 'error' => 'unavailable'];
+    // временная диагностика настройки: какой конфиг прочитан и включён ли debug/smtp (удалить после запуска)
+    header('X-Ferz-Diag: build=5 cfg=' . $configSource . ' debug=' . (empty($cfg['debug']) ? '0' : '1') . ' smtp=' . ($smtp ? '1' : '0') . ' tg=' . ($tg ? '1' : '0'));
     if (!empty($cfg['debug'])) {
-        $fail['stage'] = $smtp ? $smtpFail : 'mail_failed'; // только код этапа; включать на время настройки
+        $fail['stage'] = implode(' | ', $fails); // только код этапа; включать на время настройки
     }
     ferz_respond(502, $fail);
 }
