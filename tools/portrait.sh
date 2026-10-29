@@ -29,6 +29,12 @@ OUT="$ROOT/assets/portrait"
 WAIST_BOTTOM=${WAIST_BOTTOM:-0.85}; WAIST_ASPECT=${WAIST_ASPECT:-0.75}; WAIST_HEAD=${WAIST_HEAD:-0.05}
 CHEST_BOTTOM=${CHEST_BOTTOM:-0.53}; CHEST_ASPECT=${CHEST_ASPECT:-1.08}; CHEST_HEAD=${CHEST_HEAD:-0.06}
 CX=${CX:-}
+# Для крупного плана (фото обрезано по грудь или по плечи): растворить одежду на краях фото и добавить прозрачное поле,
+# чтобы фигура стояла в кадре так же свободно, как в полный рост. Всё в долях исходного фото; без PAD_* — как раньше.
+#   FADE_SIDE — ширина растворения у левого/правого края; FADE_BOTTOM — высота растворения у нижнего края;
+#   PAD_SIDE — поле слева и справа; PAD_BOTTOM — поле снизу (в нём фигура уже растворилась).
+# Для такого фото задайте и *_BOTTOM кадров: они считаются от высоты фото вместе с полем.
+FADE_SIDE=${FADE_SIDE:-0}; FADE_BOTTOM=${FADE_BOTTOM:-0}; PAD_SIDE=${PAD_SIDE:-0}; PAD_BOTTOM=${PAD_BOTTOM:-0}
 Q_AVIF=56; Q_AVIF_ALPHA=80; Q_WEBP=66; Q_WEBP_ALPHA=85
 PNG_LEVELS=32   # запасной PNG: серый до 32 уровней — меньше файл (на вид почти без разницы)
 
@@ -56,6 +62,21 @@ clang -fobjc-arc -O2 -framework Foundation -framework ImageIO -framework Vision 
 
 echo "Фото: $SRC"
 "$TMP/cutout" master "$SRC" "$TMP/master.png"
+
+if [ "$FADE_SIDE$FADE_BOTTOM$PAD_SIDE$PAD_BOTTOM" != 0000 ]; then
+  command -v ffmpeg >/dev/null 2>&1 || die "Нет ffmpeg для растворения краёв. Установите: brew install ffmpeg"
+  MW=$(sips -g pixelWidth "$TMP/master.png" | awk '/pixelWidth/ {print $2}')
+  MH=$(sips -g pixelHeight "$TMP/master.png" | awk '/pixelHeight/ {print $2}')
+  FX=$(awk -v w="$MW" -v f="$FADE_SIDE" 'BEGIN {printf "%d", w * f + 1}')
+  FB=$(awk -v h="$MH" -v f="$FADE_BOTTOM" 'BEGIN {printf "%d", h * f + 1}')
+  PX=$(awk -v w="$MW" -v f="$PAD_SIDE" 'BEGIN {printf "%d", w * f}')
+  PB=$(awk -v h="$MH" -v f="$PAD_BOTTOM" 'BEGIN {printf "%d", h * f}')
+  # плавная ступень (smoothstep) по каждому краю; в слое без растворения коэффициент равен 1
+  ffmpeg -v error -y -i "$TMP/master.png" -vf "format=gbrap,geq=g='g(X,Y)':b='b(X,Y)':r='r(X,Y)':a='st(0,clip(X/$FX,0,1));st(1,ld(0)*ld(0)*(3-2*ld(0)));st(0,clip(($MW-1-X)/$FX,0,1));st(1,ld(1)*ld(0)*ld(0)*(3-2*ld(0)));st(0,clip(($MH-1-Y)/$FB,0,1));st(1,ld(1)*ld(0)*ld(0)*(3-2*ld(0)));alpha(X,Y)*ld(1)',format=rgba,pad=$((MW + 2 * PX)):$((MH + PB)):$PX:0:color=black@0" "$TMP/master-faded.png" \
+    || die "ffmpeg не смог обработать края портрета."
+  mv "$TMP/master-faded.png" "$TMP/master.png"
+  echo "края растворены: боковые ${FADE_SIDE}, нижний ${FADE_BOTTOM}; поля: бок ${PAD_SIDE}, низ ${PAD_BOTTOM}"
+fi
 
 # Все кадры сначала собираются во временной папке; файлы сайта заменяются только после успеха —
 # при сбое (нет памяти, ошибка кодировщика, Ctrl+C) прежний портрет остаётся на месте целиком.
