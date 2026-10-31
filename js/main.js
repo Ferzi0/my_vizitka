@@ -850,6 +850,21 @@
   }
 
   /* ---------- Мелочи ---------- */
+  function initQr() {
+    var box = document.querySelector('.qr-float');
+    var tab = box && box.querySelector('.qr-float__tab');
+    var card = box && box.querySelector('.qr-float__card');
+    if (!box || !tab || !card) return;
+    tab.hidden = false;
+    tab.addEventListener('click', function () {
+      var collapsed = box.classList.toggle('is-collapsed');
+      tab.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      tab.setAttribute('aria-label', collapsed ? 'Показать QR-код' : 'Скрыть QR-код');
+      track(collapsed ? 'qr_hide' : 'qr_show');
+    });
+    card.addEventListener('click', function () { track('qr_socials'); });
+  }
+
   function initYear() {
     var el = document.querySelector('.js-year');
     if (el) el.textContent = String(new Date().getFullYear());
@@ -867,6 +882,7 @@
     safe('form', initForm);
     safe('order', initOrderButtons);
     safe('track', initTrackLinks);
+    safe('qr', initQr);
     safe('year', initYear);
   }
 

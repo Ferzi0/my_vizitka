@@ -904,6 +904,116 @@ html:not(.js-ready) .queen-layer__label { display: none; }
 }
 .move-rail__token svg { width: 72%; height: 72%; fill: currentColor; }
 
+/* ---------- 11b. Плавающий QR «все соцсети» ----------
+   Только от 75em (на телефонах, планшетах и узких окнах его нет). Висит под шапкой, качается как маятник,
+   по карточке пробегает блик, вокруг — пульсирующее кольцо. Белая подложка нужна самому QR (контраст
+   для сканера) в обеих темах. Со «Снижением движения» — без анимации. Язычок со стрелкой в шапке сворачивает QR наверх и возвращает (main.js). */
+.qr-float { display: none; }
+@media (min-width: 75em) {
+  .qr-float {
+    display: block;
+    position: fixed;
+    z-index: calc(var(--z-header) - 1);
+    top: var(--header-h);
+    right: calc(var(--space-5) + env(safe-area-inset-right, 0px));
+    width: 8.5rem;
+    pointer-events: none;
+  }
+  .qr-float[hidden] { display: none; }
+}
+.qr-float__swing {
+  position: relative;
+  padding-top: 1.75rem;
+  transform-origin: 50% 0;
+  transition: translate var(--dur-3, 0.5s) var(--ease-out), opacity var(--dur-2) ease, visibility 0s;
+}
+/* язычок: «выглядывает» из-под шапки, всегда на месте */
+.qr-float__tab {
+  position: absolute;
+  top: 0; left: 50%;
+  translate: -50% 0;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 24px;
+  padding: 0 0.7rem 0 0.8rem;
+  border: 1.5px solid var(--brand-400);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  background: var(--surface);
+  color: var(--brand);
+  font: inherit; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 3px 8px -2px color-mix(in oklch, var(--brand-950) 25%, transparent);
+  transition: background-color var(--dur-1) ease, color var(--dur-1) ease;
+}
+.qr-float__tab:hover { background: var(--brand-fill); color: #fff; border-color: var(--brand-fill); }
+.qr-float__tab svg { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; transition: transform var(--dur-2) var(--ease-out); }
+.qr-float__tab[hidden] { display: none; }
+.qr-float.is-collapsed .qr-float__tab svg { transform: rotate(180deg); }
+.qr-float.is-collapsed .qr-float__swing {
+  translate: 0 -115%;
+  opacity: 0;
+  visibility: hidden;
+  transition: translate var(--dur-3, 0.5s) var(--ease-out), opacity var(--dur-2) ease, visibility 0s linear var(--dur-3, 0.5s);
+}
+.qr-float__card {
+  position: relative;
+  display: block;
+  padding: 0.5rem 0.5rem 0.4rem;
+  border: 1.5px solid var(--brand-400);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--brand-800);
+  text-align: center;
+  text-decoration: none;
+  overflow: hidden;
+  pointer-events: auto;
+  box-shadow: 0 4px 0 var(--brand-200), var(--shadow-2), 0 0 24px color-mix(in oklch, var(--brand-500) 28%, transparent);
+  transition: transform var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+.qr-float__code { display: block; line-height: 0; }
+.qr-float__code img { display: block; width: 100%; height: auto; aspect-ratio: 1; }
+.qr-float__cap { display: block; margin-top: 0.3rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.2; }
+/* блик */
+.qr-float__card::after {
+  content: "";
+  position: absolute;
+  inset: -20% auto -20% -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.85), transparent);
+  transform: skewX(-18deg);
+  opacity: 0;
+  pointer-events: none;
+}
+.qr-float__card:hover, .qr-float__card:focus-visible {
+  transform: scale(1.18);
+  box-shadow: 0 6px 0 var(--brand-200), var(--shadow-2), 0 0 36px color-mix(in oklch, var(--brand-500) 45%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .qr-float { animation: qr-in 0.8s var(--ease-out) 1.2s backwards; }
+  .qr-float__swing { animation: qr-swing 6s ease-in-out infinite alternate; }
+  .qr-float__card { animation: qr-bob 3.4s ease-in-out infinite alternate; }
+  .qr-float__card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--brand-500) 55%, transparent);
+    animation: qr-pulse 2.8s ease-out infinite;
+    pointer-events: none;
+  }
+  .qr-float__card::after { animation: qr-shine 5s ease-in-out 1.5s infinite; }
+  .qr-float__swing:hover, .qr-float__swing:focus-within { animation-play-state: paused; }
+}
+@keyframes qr-in { from { opacity: 0; translate: 0 -40px; } }
+@keyframes qr-swing { from { rotate: -3deg; } to { rotate: 3deg; } }
+@keyframes qr-bob { from { translate: 0 0; } to { translate: 0 8px; } }
+@keyframes qr-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--brand-500) 50%, transparent); } 70%, 100% { box-shadow: 0 0 0 16px transparent; } }
+@keyframes qr-shine { 0%, 55% { left: -60%; opacity: 0; } 62% { opacity: 1; } 85%, 100% { left: 130%; opacity: 0; } }
+
 /* ---------- 11a. Кнопка «Наверх» ----------
    Только с JS (без него — hidden). Круглая латунная по контуру плитка с «толщиной», как фишки ферзя.
    Стоит левее полосы ходов (её правый край + ширина = --tt-x), на ≥ 1440 px — по центру колонки мини-доски,
@@ -2015,7 +2125,7 @@ html:not(.js-ready) .queen-layer__label { display: none; }
   .hero__ferz { forced-color-adjust: none; color: transparent; -webkit-text-stroke-color: GrayText; }
 }
 @media print {
-  .site-header, .queen-layer, .move-rail, .hero__stage, .form, .copy-btn, .site-footer__word, .bot-cta, .to-top { display: none !important; }
+  .site-header, .queen-layer, .move-rail, .hero__stage, .form, .copy-btn, .site-footer__word, .bot-cta, .to-top, .qr-float { display: none !important; }
   .js.js-ready .rv, .js.js-ready .rv-in { opacity: 1 !important; translate: none !important; animation: none !important; }
   .scope-wine { background: none !important; color: #000 !important; }
   body { background: #fff; color: #000; }

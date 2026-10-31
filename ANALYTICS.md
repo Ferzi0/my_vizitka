@@ -14,6 +14,8 @@
 | `form_fallback` | сервер недоступен, открыто письмо через mailto: |
 | `contact_email` | клик по ссылке на почту |
 | `contact_email_copy` | адрес почты скопирован кнопкой |
+| `qr_socials` | клик по плавающему QR «все соцсети» |
+| `qr_hide` / `qr_show` | QR свернули / вернули язычком под шапкой |
 | `contact_telegram` | клик по ссылке на Telegram |
 | `contact_bot` | клик по кнопке «Заявка через Telegram-бота» |
 
