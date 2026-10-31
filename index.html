@@ -35,9 +35,9 @@
   <link rel="preload" href="assets/fonts/ferz-display-cyr.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/ferz-display-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/ferz-text.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/main.css?v=3">
   <script src="js/theme-init.js"></script>
-  <script src="js/main.js" defer></script>
+  <script src="js/main.js?v=3" defer></script>
   <!-- Приватная аналитика без cookie: по умолчанию НЕ подключена, ничего внешнего не грузится.
        Чтобы включить, раскомментируйте ОДНУ строку и поправьте CSP в _headers (см. ANALYTICS.md).
        События (track в js/main.js) подхватятся автоматически.
@@ -201,12 +201,12 @@
           </div>
           <figure class="portrait">
             <picture class="portrait__pic">
-              <source media="(max-width: 37.49em)" type="image/avif" srcset="assets/portrait/portrait-chest-360.avif 360w, assets/portrait/portrait-chest-720.avif 720w" sizes="min(100vw - 2rem, 25rem)" width="720" height="667">
-              <source media="(max-width: 37.49em)" type="image/webp" srcset="assets/portrait/portrait-chest-360.webp 360w, assets/portrait/portrait-chest-720.webp 720w" sizes="min(100vw - 2rem, 25rem)" width="720" height="667">
-              <source media="(max-width: 37.49em)" srcset="assets/portrait/portrait-chest-360.png 360w, assets/portrait/portrait-chest-720.png 720w" sizes="min(100vw - 2rem, 25rem)" width="720" height="667">
-              <source type="image/avif" srcset="assets/portrait/portrait-waist-480.avif 480w, assets/portrait/portrait-waist-960.avif 960w" sizes="(min-width: 64em) clamp(18rem, 4rem + 26vw, 28rem), min(100vw - 10rem, 26rem, 56vh)" width="960" height="1280">
-              <source type="image/webp" srcset="assets/portrait/portrait-waist-480.webp 480w, assets/portrait/portrait-waist-960.webp 960w" sizes="(min-width: 64em) clamp(18rem, 4rem + 26vw, 28rem), min(100vw - 10rem, 26rem, 56vh)" width="960" height="1280">
-              <img class="portrait__img" src="assets/portrait/portrait-waist-480.png" srcset="assets/portrait/portrait-waist-480.png 480w, assets/portrait/portrait-waist-960.png 960w" sizes="(min-width: 64em) clamp(18rem, 4rem + 26vw, 28rem), min(100vw - 10rem, 26rem, 56vh)" width="960" height="1280" alt="Эдуард Торгашов, портрет" fetchpriority="high">
+              <source media="(max-width: 37.49em)" type="image/avif" srcset="assets/portrait/portrait-chest-360.avif?v=3 360w, assets/portrait/portrait-chest-720.avif?v=3 720w" sizes="min(100vw - 2rem, 25rem)" width="720" height="667">
+              <source media="(max-width: 37.49em)" type="image/webp" srcset="assets/portrait/portrait-chest-360.webp?v=3 360w, assets/portrait/portrait-chest-720.webp?v=3 720w" sizes="min(100vw - 2rem, 25rem)" width="720" height="667">
+              <source media="(max-width: 37.49em)" srcset="assets/portrait/portrait-chest-360.png?v=3 360w, assets/portrait/portrait-chest-720.png?v=3 720w" sizes="min(100vw - 2rem, 25rem)" width="720" height="667">
+              <source type="image/avif" srcset="assets/portrait/portrait-waist-480.avif?v=3 480w, assets/portrait/portrait-waist-960.avif?v=3 960w" sizes="(min-width: 64em) clamp(18rem, 4rem + 26vw, 28rem), min(100vw - 10rem, 26rem, 56vh)" width="960" height="1280">
+              <source type="image/webp" srcset="assets/portrait/portrait-waist-480.webp?v=3 480w, assets/portrait/portrait-waist-960.webp?v=3 960w" sizes="(min-width: 64em) clamp(18rem, 4rem + 26vw, 28rem), min(100vw - 10rem, 26rem, 56vh)" width="960" height="1280">
+              <img class="portrait__img" src="assets/portrait/portrait-waist-480.png?v=3" srcset="assets/portrait/portrait-waist-480.png?v=3 480w, assets/portrait/portrait-waist-960.png?v=3 960w" sizes="(min-width: 64em) clamp(18rem, 4rem + 26vw, 28rem), min(100vw - 10rem, 26rem, 56vh)" width="960" height="1280" alt="Эдуард Торгашов, портрет" fetchpriority="high">
             </picture>
             <figcaption class="portrait__cap">
               <span class="portrait__name">Эдуард Торгашов</span>
@@ -387,21 +387,15 @@
 
         <div class="cases">
           <article class="case" aria-labelledby="case-1-title">
-            <div class="case__shot shot shot--school" aria-hidden="true">
+            <!-- Сам проект закрыт к распространению, поэтому в карточке — цифровой паспорт компетенций по итогам экзамена.
+                 Исходник: src-images/exam/01.png, пересборка — sh tools/images.sh exam. В кадре виден верх листа (object-fit: cover). -->
+            <div class="case__shot shot shot--slides">
               <div class="shot__frame">
-                <div class="ms-top"><span class="ms-logo"></span><span class="ms-brand">Курсы</span><span class="ms-user"></span></div>
-                <div class="ms-body">
-                  <div class="ms-form">
-                    <span class="ms-h">Заявка на&nbsp;курс</span>
-                    <span class="ms-field"></span><span class="ms-field"></span>
-                    <span class="ms-btn">Отправить</span>
-                  </div>
-                  <div class="ms-table">
-                    <span class="ms-row"><i></i><b class="is-new">новая</b></span>
-                    <span class="ms-row"><i></i><b class="is-ok">принята</b></span>
-                    <span class="ms-row"><i></i><b class="is-ok">принята</b></span>
-                  </div>
-                </div>
+                <picture class="slide is-active">
+                  <source type="image/avif" srcset="assets/works/exam/01-800.avif 800w, assets/works/exam/01-1600.avif 1600w" sizes="(min-width: 64em) 340px, 84vw">
+                  <source type="image/webp" srcset="assets/works/exam/01-800.webp 800w, assets/works/exam/01-1600.webp 1600w" sizes="(min-width: 64em) 340px, 84vw">
+                  <img class="slide__img" src="assets/works/exam/01-800.jpg" srcset="assets/works/exam/01-800.jpg 800w, assets/works/exam/01-1600.jpg 1600w" sizes="(min-width: 64em) 340px, 84vw" width="1600" height="2265" loading="lazy" decoding="async" alt="Цифровой паспорт компетенций по итогам демонстрационного экзамена: результат 100 %, 50 из 50 баллов, специальность 09.02.07 «Информационные системы и программирование», экзамен 3 июня 2026 года">
+                </picture>
               </div>
             </div>
             <div class="case__body">
@@ -695,7 +689,7 @@
     </button>
     <div class="qr-float__swing" id="qr-card">
       <a class="qr-float__card" href="https://hipolink.net/ferz" target="_blank" rel="noopener noreferrer">
-        <span class="qr-float__code"><img src="assets/qr-socials.svg" width="112" height="112" alt="QR-код: все соцсети Ferz" decoding="async"></span>
+        <span class="qr-float__code"><img src="assets/qr-socials.svg?v=3" width="112" height="112" alt="QR-код: все соцсети Ferz" decoding="async"></span>
         <span class="qr-float__cap">Все соцсети</span>
         <span class="visually-hidden">(откроется в&nbsp;новой вкладке)</span>
       </a>
